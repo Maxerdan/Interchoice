@@ -24,7 +24,7 @@ namespace Interchoice
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa8969;User Id=db_a856b2_gomisa8969_admin;Password=gomisa8969";
+            string conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa;User Id=db_a856b2_gomisa_admin;Password=gomisa8969";
             services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(conStr));
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationContext>()
@@ -72,12 +72,15 @@ namespace Interchoice
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+            app.UseCors();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

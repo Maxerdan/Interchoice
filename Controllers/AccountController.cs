@@ -1,4 +1,5 @@
 ﻿using Interchoice.Models;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -40,8 +41,9 @@ namespace Interchoice.Controllers
             }
         }
 
+        [EnableCors]
         [HttpPost("Register")]
-        public async Task<IActionResult> RegisterAsync(RegisterViewModel registerVm)
+        public async Task<IActionResult> RegisterAsync([FromBody]RegisterViewModel registerVm)
         {
             if(!IsValidEmailAddress(registerVm.Email))
                 return BadRequest($"'{registerVm.Email}' is not valid email");
@@ -59,8 +61,9 @@ namespace Interchoice.Controllers
                 return BadRequest($"Something went wrong while saving: {user.Email} \n{string.Join("\n", result.Errors.Select(x => x.Description))}");
         }
 
+        [EnableCors]
         [HttpPost("Login")]
-        public async Task<IActionResult> AuthenticateAsync(LoginViewModel loginVm)
+        public async Task<IActionResult> AuthenticateAsync([FromBody]LoginViewModel loginVm)
         {
             var user = await _userManager.FindByEmailAsync(loginVm.Email);
 
@@ -82,7 +85,7 @@ namespace Interchoice.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddMinutes(5),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
