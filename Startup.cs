@@ -31,8 +31,8 @@ namespace Interchoice
                 .AddDefaultTokenProviders();
 
             services.AddControllersWithViews();
-
             services.AddMvc();
+            services.AddCors();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -77,7 +77,7 @@ namespace Interchoice
             app.UseSpaStaticFiles();
 
             app.UseRouting();
-            app.UseCors();
+            app.UseCors(builder => builder.AllowAnyOrigin());
 
             app.UseAuthentication();
             app.UseAuthorization();
