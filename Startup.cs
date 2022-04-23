@@ -26,7 +26,15 @@ namespace Interchoice
         {
             string conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa;User Id=db_a856b2_gomisa_admin;Password=gomisa8969";
             services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(conStr));
-            services.AddIdentity<User, IdentityRole>()
+            services.AddIdentity<User, IdentityRole>(options =>
+            options.Password = new PasswordOptions
+            {
+                RequireDigit = true,
+                RequireLowercase = true,
+                RequireUppercase = true,
+                RequiredLength = 0,
+                RequireNonAlphanumeric = false
+            })
                 .AddEntityFrameworkStores<ApplicationContext>()
                 .AddDefaultTokenProviders();
 
