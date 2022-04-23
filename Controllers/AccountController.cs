@@ -43,39 +43,39 @@ namespace Interchoice.Controllers
 
         [EnableCors]
         [HttpPost("Register")]
-        public async Task<IActionResult> RegisterAsync([FromBody]RegisterViewModel registerVm)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegisterViewModel registerVm)
         {
-            if(!IsValidEmailAddress(registerVm.Email))
-                return BadRequest($"'{registerVm.Email}' is not valid email");
+            if (!IsValidEmailAddress(registerVm.Email))
+                return Json(new TransportResult(100, $"'{registerVm.Email}' is not valid email", false));
 
             var users = _userManager.Users.ToList();
             // check for same email
             if (users.Any(x => x.Email == registerVm.Email))
-                return BadRequest(new { message = $"{registerVm.Email} is already in use" });
+                return Json(new TransportResult(110, $"{registerVm.Email} is already in use", false));
 
             var user = new User() { UserName = registerVm.Email, Email = registerVm.Email, EmailConfirmed = true, FirstName = registerVm.FirstName, LastName = registerVm.LastName, BirthDate = registerVm.BirthDate, Country = registerVm.Country };
             var result = await _userManager.CreateAsync(user, registerVm.PasswordHash);
             if (result.Succeeded)
-                return Ok($"Great register for: {user.UserName}");
+                return Json(new TransportResult(1, $"Successful register for: {user.UserName}", true));
             else
-                return BadRequest($"Something went wrong while saving: {user.Email} \n{string.Join("\n", result.Errors.Select(x => x.Description))}");
+                return Json(new TransportResult(200, $"Something went wrong while saving user to database: {user.Email} \n{string.Join("\n", result.Errors.Select(x => x.Description))}", false));
         }
 
         [EnableCors]
         [HttpPost("Login")]
-        public async Task<IActionResult> AuthenticateAsync([FromBody]LoginViewModel loginVm)
+        public async Task<IActionResult> AuthenticateAsync([FromBody] LoginViewModel loginVm)
         {
             var user = await _userManager.FindByEmailAsync(loginVm.Email);
 
             var result = await _signInManager.PasswordSignInAsync(loginVm.Email, loginVm.PasswordHash, false, false);
             if (!result.Succeeded)
-                return BadRequest("Can't login");
+                return Json(new TransportResult(120, $"Email or password is incorrect",false));
 
             // authentication successful so generate jwt token
             user.JwtToken = GenerateJwtToken(user);
             await _userManager.UpdateAsync(user);
 
-            return Ok(new JwtToken() { Token = user.JwtToken });
+            return Json(new TransportResult(2,"", true, user.JwtToken));
         }
 
         private string GenerateJwtToken(User user)
