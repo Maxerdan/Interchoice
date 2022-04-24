@@ -41,8 +41,22 @@ namespace Interchoice.Controllers
             }
         }
 
+
+        /// <summary>
+        /// Register new user
+        /// </summary>
+        /// <param name="registerVm"></param>
+        /// <returns></returns>
+        /// <response code="100">'@email' is not valid email</response>  
+        /// <response code="110">'@email' is already in use</response>  
+        /// <response code="1">Successful register for: '@email'</response>  
+        /// <response code="200">Something went wrong while saving user to database: '@email'</response>  
         [EnableCors]
         [HttpPost("Register")]
+        [ProducesResponseType(100)]
+        [ProducesResponseType(110)]
+        [ProducesResponseType(1)]
+        [ProducesResponseType(200)]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterViewModel registerVm)
         {
             if (!IsValidEmailAddress(registerVm.Email))
@@ -51,18 +65,27 @@ namespace Interchoice.Controllers
             var users = _userManager.Users.ToList();
             // check for same email
             if (users.Any(x => x.Email == registerVm.Email))
-                return Json(new TransportResult(110, $"{registerVm.Email} is already in use", false));
+                return Json(new TransportResult(110, $"'{registerVm.Email}' is already in use", false));
 
             var user = new User() { UserName = registerVm.Email, Email = registerVm.Email, EmailConfirmed = true, FirstName = registerVm.FirstName, LastName = registerVm.LastName, BirthDate = registerVm.BirthDate, Country = registerVm.Country };
             var result = await _userManager.CreateAsync(user, registerVm.PasswordHash);
             if (result.Succeeded)
-                return Json(new TransportResult(1, $"Successful register for: {user.UserName}", true));
+                return Json(new TransportResult(1, $"Successful register for: '{user.UserName}'", true));
             else
-                return Json(new TransportResult(200, $"Something went wrong while saving user to database: {user.Email} \n{string.Join("\n", result.Errors.Select(x => x.Description))}", false));
+                return Json(new TransportResult(200, $"Something went wrong while saving user to database: '{user.Email}' \n{string.Join("\n", result.Errors.Select(x => x.Description))}", false));
         }
 
+
+        /// <summary>
+        /// Login user using credentionals: password and email
+        /// </summary>
+        /// <param name="loginVm"></param>
+        /// <returns></returns>
+        /// /// <response code="2">Returns token in value field</response>  
+        /// /// <response code="120">Email or password is incorrect</response>  
         [EnableCors]
         [HttpPost("Login")]
+        [ProducesResponseType(120)]
         public async Task<IActionResult> AuthenticateAsync([FromBody] LoginViewModel loginVm)
         {
             var user = await _userManager.FindByEmailAsync(loginVm.Email);
