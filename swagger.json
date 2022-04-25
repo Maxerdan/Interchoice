@@ -14,69 +14,39 @@
         "tags": [
           "Account"
         ],
-        "parameters": [
-          {
-            "name": "FirstName",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "LastName",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Email",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "BirthDate",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Country",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "PasswordHash",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "password"
-            }
-          },
-          {
-            "name": "PasswordHashCheck",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "password"
+        "summary": "Register new user",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterViewModel"
+              }
             }
           }
-        ],
+        },
         "responses": {
+          "100": {
+            "description": "'@email' is not valid email"
+          },
+          "110": {
+            "description": "'@email' is already in use"
+          },
+          "1": {
+            "description": "Successful register for: '@email'"
+          },
           "200": {
-            "description": "Success"
+            "description": "Something went wrong while saving user to database: '@email'"
           }
         }
       }
@@ -86,32 +56,95 @@
         "tags": [
           "Account"
         ],
-        "parameters": [
-          {
-            "name": "Email",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "PasswordHash",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "password"
+        "summary": "Login user using credentionals: password and email",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginViewModel"
+              }
             }
           }
-        ],
+        },
         "responses": {
-          "200": {
-            "description": "Success"
+          "120": {
+            "description": "Email or password is incorrect"
+          },
+          "2": {
+            "description": "Returns token in value field"
           }
         }
       }
     }
   },
-  "components": { }
+  "components": {
+    "schemas": {
+      "LoginViewModel": {
+        "required": [
+          "email",
+          "passwordHash"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "passwordHash": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterViewModel": {
+        "required": [
+          "birthDate",
+          "country",
+          "email",
+          "firstName",
+          "lastName",
+          "passwordHash",
+          "passwordHashCheck"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "passwordHash": {
+            "type": "string",
+            "format": "password"
+          },
+          "passwordHashCheck": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
 }
