@@ -26,7 +26,7 @@ namespace Interchoice
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa;User Id=db_a856b2_gomisa_admin;Password=gomisa8969";
+            string conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa896;User Id=db_a856b2_gomisa896_admin;Password=gomisa8969";
             services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(conStr));
             services.AddIdentity<User, IdentityRole>(options =>
             options.Password = new PasswordOptions
