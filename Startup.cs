@@ -91,7 +91,7 @@ namespace Interchoice
             app.UseSpaStaticFiles();
 
             app.UseRouting();
-            app.UseCors(builder => builder.AllowAnyOrigin());
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader());
 
             app.UseAuthentication();
             app.UseAuthorization();
