@@ -1,4 +1,5 @@
 using Interchoice.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -16,7 +17,7 @@ namespace Interchoice
 {
     public class Startup
     {
-        public static string _conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa896;User Id=db_a856b2_gomisa896_admin;Password=gomisa8969";
+        public static string _conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa8;User Id=db_a856b2_gomisa8_admin;Password=gomisa8969";
 
         public Startup(IConfiguration configuration)
         {
@@ -40,6 +41,12 @@ namespace Interchoice
             })
                 .AddEntityFrameworkStores<ApplicationContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
+                });
 
             services.AddControllersWithViews();
             services.AddMvc();

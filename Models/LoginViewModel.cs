@@ -9,6 +9,6 @@ namespace Interchoice.Models
 
             [Required]
             [DataType(DataType.Password)]
-            public string PasswordHash { get; set; }
+            public string Password { get; set; }
     }
 }

@@ -9,6 +9,110 @@
     "version": "v1"
   },
   "paths": {
+    "/Test": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/CreateProject": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Create project handle",
+        "parameters": [
+          {
+            "name": "Name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ShortDescription",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FullDescription",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "Overview": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "Overview": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "200 (4)": {
+            "description": "Successful created project"
+          },
+          "403 (140)": {
+            "description": "Exception message"
+          }
+        }
+      }
+    },
     "/Register": {
       "post": {
         "tags": [
@@ -36,16 +140,19 @@
           }
         },
         "responses": {
-          "100": {
+          "200": {
+            "description": "Success"
+          },
+          "403 (100)": {
             "description": "'@email' is not valid email"
           },
-          "110": {
+          "403 (110)": {
             "description": "'@email' is already in use"
           },
-          "1": {
+          "200 (1)": {
             "description": "Successful register for: '@email'"
           },
-          "200": {
+          "403 (120)": {
             "description": "Something went wrong while saving user to database: '@email'"
           }
         }
@@ -78,11 +185,30 @@
           }
         },
         "responses": {
-          "120": {
-            "description": "Email or password is incorrect"
+          "200": {
+            "description": "Success"
           },
-          "2": {
-            "description": "Returns token in value field"
+          "200 (2)": {
+            "description": "Successful login, returns token in value field"
+          },
+          "403 (130)": {
+            "description": "Email or password is incorrect"
+          }
+        }
+      }
+    },
+    "/Logout": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Logout handler",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "200 (3)": {
+            "description": "Logout complete"
           }
         }
       }
@@ -93,14 +219,14 @@
       "LoginViewModel": {
         "required": [
           "email",
-          "passwordHash"
+          "password"
         ],
         "type": "object",
         "properties": {
           "email": {
             "type": "string"
           },
-          "passwordHash": {
+          "password": {
             "type": "string",
             "format": "password"
           }
@@ -110,12 +236,12 @@
       "RegisterViewModel": {
         "required": [
           "birthDate",
+          "confirmPassword",
           "country",
           "email",
           "firstName",
           "lastName",
-          "passwordHash",
-          "passwordHashCheck"
+          "password"
         ],
         "type": "object",
         "properties": {
@@ -134,11 +260,11 @@
           "country": {
             "type": "string"
           },
-          "passwordHash": {
+          "password": {
             "type": "string",
             "format": "password"
           },
-          "passwordHashCheck": {
+          "confirmPassword": {
             "type": "string",
             "format": "password"
           }
