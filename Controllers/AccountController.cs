@@ -1,13 +1,17 @@
 ﻿using Interchoice.Models;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Interchoice.Controllers
@@ -27,20 +31,44 @@ namespace Interchoice.Controllers
         {
             return View();
         }
-
-        public bool IsValidEmailAddress(string email)
+        public class FileUploadAPI
         {
-            try
+            public IFormFile file { get; set; }
+        }
+
+        [HttpPost("Test")]
+        public IActionResult Test(FileUploadAPI formFile)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var emailChecked = new System.Net.Mail.MailAddress(email);
-                return true;
-            }
-            catch
-            {
-                return false;
+                //context.Database.Migrate();
+                context.ProjectsInfo = context.Set<ProjectInfo>();
+                context.ProjectsInfo.Add(new ProjectInfo() { UserId = 1, Name = "name", FullDescription = "full", ShortDescription = "short", Overview = formFile.file.Name });
+                context.SaveChanges();
+                return Ok();
             }
         }
 
+        [EnableCors]
+        [HttpPost("CreateProject")]
+        public async Task<IActionResult> CreateProject([FromBody] CreateProjectModel projectModel)
+        {
+            try
+            {
+                if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\Upload\\"))
+                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\Upload\\");
+                using (FileStream fileStream = System.IO.File.Create(Directory.GetCurrentDirectory() + "\\Upload\\" + projectModel.Overview.FileName))
+                {
+                    projectModel.Overview.CopyTo(fileStream);
+                    fileStream.Flush();
+                    return Json(new TransportResult(3, $"Successful created project", true));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new TransportResult(130, $"{ex.Message}", false));
+            }
+        }
 
         /// <summary>
         /// Register new user
@@ -81,7 +109,7 @@ namespace Interchoice.Controllers
         /// </summary>
         /// <param name="loginVm"></param>
         /// <returns></returns>
-        /// /// <response code="2">Returns token in value field</response>  
+        /// /// <response code="2">Successful login, returns token in value field</response>  
         /// /// <response code="120">Email or password is incorrect</response>  
         [EnableCors]
         [HttpPost("Login")]
@@ -92,13 +120,26 @@ namespace Interchoice.Controllers
 
             var result = await _signInManager.PasswordSignInAsync(loginVm.Email, loginVm.PasswordHash, false, false);
             if (!result.Succeeded)
-                return Json(new TransportResult(120, $"Email or password is incorrect",false));
+                return Json(new TransportResult(120, $"Email or password is incorrect", false));
 
             // authentication successful so generate jwt token
             user.JwtToken = GenerateJwtToken(user);
             await _userManager.UpdateAsync(user);
 
-            return Json(new TransportResult(2,"", true, user.JwtToken));
+            return Json(new TransportResult(2, "", true, user.JwtToken));
+        }
+
+        private bool IsValidEmailAddress(string email)
+        {
+            try
+            {
+                var emailChecked = new System.Net.Mail.MailAddress(email);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private string GenerateJwtToken(User user)

@@ -16,6 +16,8 @@ namespace Interchoice
 {
     public class Startup
     {
+        public static string _conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa896;User Id=db_a856b2_gomisa896_admin;Password=gomisa8969";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -26,8 +28,7 @@ namespace Interchoice
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa896;User Id=db_a856b2_gomisa896_admin;Password=gomisa8969";
-            services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(conStr));
+            services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(_conStr));
             services.AddIdentity<User, IdentityRole>(options =>
             options.Password = new PasswordOptions
             {
@@ -54,7 +55,6 @@ namespace Interchoice
                     {
                         Name = "Our Team",
                     }
-
                 });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
