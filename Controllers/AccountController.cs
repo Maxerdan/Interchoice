@@ -63,6 +63,30 @@ namespace Interchoice.Controllers
         }
 
         /// <summary>
+        /// Returns user info
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200 (5)">Successful return user info</response>
+        /// <response code="403 (150)">No user found</response>
+        [Authorize]
+        [HttpGet("UserInfo")]
+        public async Task<IActionResult> UserInfo()
+        {
+            var email = GetValue(HttpContext.User, ClaimTypes.Name);
+            var user = await _userManager.FindByEmailAsync(email);
+            if(user == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                return Json(new TransportResult(150, $"No user found", false));
+            }
+
+            var userInfoJson = JsonSerializer.Serialize(new UserInfoResponse(user));
+
+            return Json(new TransportResult(5, $"", true, userInfoJson));
+        }
+
+
+        /// <summary>
         /// Create project handle
         /// </summary>
         /// <param name="projectModel"></param>
