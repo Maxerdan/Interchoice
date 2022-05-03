@@ -15,5 +15,6 @@ namespace Interchoice.Models
         public string Overview { get; set; }
         public string ShortDescription { get; set; }
         public string FullDescription { get; set; }
+        public string NodesId { get; set; }
     }
 }

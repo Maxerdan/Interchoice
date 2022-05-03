@@ -18,11 +18,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Net;
+using Interchoice.Models.Graph;
 
 namespace Interchoice.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly string currentDirectory = Directory.GetCurrentDirectory() + $"\\ClientApp\\public";
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
@@ -62,6 +64,116 @@ namespace Interchoice.Controllers
             return Ok($"{smt}");
         }
 
+        [Authorize]
+        [HttpGet("GetVideoUrl")]
+        public async Task<IActionResult> GetVideoUrl(Ids node)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                var emailName = email.Split('@').First();
+                var userFolderName = $"\\{emailName}\\";
+                var project = context.ProjectsInfo.ToList().Where(x => x.NodesId.Contains(node.Id)).First();
+                var projectName = $"{project.Name}\\";
+                var foundNode = context.Nodes.Find(node.Id);
+
+                var videoLocalUrl = $"localhost:5000" + userFolderName + projectName + foundNode.VideoFileName;
+                return Json(new TransportResult(8, $"", true, videoLocalUrl));
+            }
+        }
+
+        /// <summary>
+        /// Removes node with id and all connections
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        /// <response code="200 (8)">Successful deleted node</response>
+        [Authorize]
+        [HttpDelete("RemoveNode")]
+        public async Task<IActionResult> RemoveNode(Ids node)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var foundNode = context.Nodes.Find(node.Id);
+                context.Nodes.Remove(foundNode);
+
+
+                var nodes = context.Nodes.ToList();
+                foreach(var n in nodes)
+                {
+                    if (n.ParentGuids.Contains(node.Id))
+                        n.ParentGuids.Replace(node.Id, "");
+                    if (n.ChildGuids.Contains(node.Id))
+                        n.ChildGuids.Replace(node.Id, "");
+                }
+                context.UpdateRange(nodes);
+                context.SaveChanges();
+                return Json(new TransportResult(8, $"Successful deleted node", true));
+            }
+        }
+
+        /// <summary>
+        /// Edit node in database
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200 (7)">Successful edit node</response>
+        [Authorize]
+        [EnableCors]
+        [HttpPost("EditNode")]
+        public async Task<IActionResult> EditNode(EditNodeRequest editNode)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                var emailName = email.Split('@').First();
+                var userFolderName = $"\\{emailName}\\";
+                var project = context.ProjectsInfo.ToList().Where(x=>x.NodesId.Contains(editNode.Id.ToString())).First();
+                var projectName = $"{project.Name}\\";
+
+                context.Nodes = context.Set<Node>();
+                var foundNode = context.Nodes.Find(editNode.Id);
+                foundNode.Name = editNode.Name;
+                foundNode.Description = editNode.Description;
+                foundNode.ButtonName = editNode.ButtonName;
+                using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + editNode.VideoFile.FileName))
+                {
+                    editNode.VideoFile.CopyTo(fileStream);
+                    fileStream.Flush();
+                }
+
+                context.Nodes.Update(foundNode);
+                context.SaveChanges();
+                return Json(new TransportResult(7, $"Successful edit node", true));
+            }
+        }
+
+        /// <summary>
+        /// Create node, return id
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200 (6)">Successful created node, return id</response>
+        [Authorize]
+        [HttpGet("CreateNode")]
+        public async Task<IActionResult> CreateNode(Ids projectsId)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var node = new Node();
+                context.Nodes = context.Set<Node>();
+                context.Nodes.Add(node);
+
+                var project = context.ProjectsInfo.Find(new Guid(projectsId.Id));
+                if (string.IsNullOrEmpty(project.NodesId))
+                    project.NodesId = node.Id.ToString();
+                else
+                    project.NodesId += $"\n{node.Id}";
+                context.ProjectsInfo.Update(project);
+
+                context.SaveChanges();
+                return Json(new TransportResult(6, $"Successful created node", true, node.Id));
+            }
+        }
+
         /// <summary>
         /// Returns user info
         /// </summary>
@@ -74,7 +186,7 @@ namespace Interchoice.Controllers
         {
             var email = GetValue(HttpContext.User, ClaimTypes.Name);
             var user = await _userManager.FindByEmailAsync(email);
-            if(user == null)
+            if (user == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 return Json(new TransportResult(150, $"No user found", false));
@@ -91,7 +203,7 @@ namespace Interchoice.Controllers
         /// </summary>
         /// <param name="projectModel"></param>
         /// <returns></returns>
-        /// <response code="200 (4)">Successful created project</response>
+        /// <response code="200 (4)">Successful created project, returned project id</response>
         /// <response code="403 (140)">Exception message</response>
         [Authorize]
         [EnableCors]
@@ -105,28 +217,31 @@ namespace Interchoice.Controllers
                 var userFolderName = $"\\{emailName}\\";
                 var projectName = $"{projectModel.Name}\\";
                 var user = await _userManager.FindByEmailAsync(email);
-                if (!Directory.Exists(Directory.GetCurrentDirectory() + userFolderName))
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + userFolderName);
-                if (!Directory.Exists(Directory.GetCurrentDirectory() + userFolderName + projectName))
-                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + userFolderName + projectName);
-                using (FileStream fileStream = System.IO.File.Create(Directory.GetCurrentDirectory() + userFolderName + projectName + projectModel.Overview.FileName))
+                if (!Directory.Exists(currentDirectory + userFolderName))
+                    Directory.CreateDirectory(currentDirectory + userFolderName);
+                if (!Directory.Exists(currentDirectory + userFolderName + projectName))
+                    Directory.CreateDirectory(currentDirectory + userFolderName + projectName);
+                using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + projectModel.Overview.FileName))
                 {
                     projectModel.Overview.CopyTo(fileStream);
                     fileStream.Flush();
                     using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
                     {
                         context.ProjectsInfo = context.Set<ProjectInfo>();
-                        context.ProjectsInfo.Add(new ProjectInfo()
+                        var project = new ProjectInfo()
                         {
                             UserId = user.Id,
                             Name = projectModel.Name,
                             FullDescription = projectModel.FullDescription,
                             ShortDescription = projectModel.ShortDescription,
                             Overview = projectModel.Overview.Name
-                        });
+                        };
+                        context.ProjectsInfo.Add(project);
+
+
                         context.SaveChanges();
+                        return Json(new TransportResult(4, $"Successful created project", true, project.ProjectId));
                     }
-                    return Json(new TransportResult(4, $"Successful created project", true));
                 }
             }
             catch (Exception ex)
