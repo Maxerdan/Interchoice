@@ -1,4 +1,6 @@
-﻿namespace Interchoice.Models
+﻿using System;
+
+namespace Interchoice.Models
 {
     public class Ids
     {

@@ -10,8 +10,6 @@ namespace Interchoice.Models.Graph
 
         public string Name { get; set; }
 
-        public IFormFile VideoFile { get; set; }
-
         public string Description { get; set; }
 
         public string ButtonName { get; set; }

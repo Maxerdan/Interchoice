@@ -87,7 +87,7 @@ namespace Interchoice.Controllers
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
                 if (!string.IsNullOrEmpty(foundParentNode.ChildGuids))
-                    foundParentNode.ChildGuids= foundParentNode.ChildGuids.Replace($"{connectRequest.ToId}", "");
+                    foundParentNode.ChildGuids = foundParentNode.ChildGuids.Replace($"{connectRequest.ToId}", "");
                 context.Nodes.Update(foundParentNode);
                 context.SaveChanges();
 
@@ -189,6 +189,71 @@ namespace Interchoice.Controllers
         }
 
         /// <summary>
+        /// loads video
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200 (11)">Successful load video</response>
+        [Authorize]
+        [HttpPost("LoadVideo")]
+        public async Task<IActionResult> LoadVideo(LoadVideoRequest loadVideo)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                var emailName = email.Split('@').First();
+                var userFolderName = $"\\{emailName}\\";
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(loadVideo.Id.ToString())).First();
+                var projectName = $"{project.Name}\\";
+                var foundNode = context.Nodes.Find(loadVideo.Id);
+
+                if (HttpContext.Request.Form.Files[0] != null)
+                {
+                    var file = HttpContext.Request.Form.Files[0];
+                    using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + file.FileName))
+                    {
+                        foundNode.VideoFileName = file.FileName;
+                        file.CopyTo(fileStream);
+                        fileStream.Flush();
+                    }
+                }
+
+                context.Nodes.Update(foundNode);
+                context.SaveChanges();
+                return Json(new TransportResult(11, $"Successful load video", true));
+            }
+        }
+
+        /// <summary>
+        /// Removes video
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200 (12)">Successful removed video</response>
+        [Authorize]
+        [HttpDelete("RemoveVideo")]
+        public async Task<IActionResult> RemoveVideo(Ids nodeId)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                var emailName = email.Split('@').First();
+                var userFolderName = $"\\{emailName}\\";
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(nodeId.Id.ToString())).First();
+                var projectName = $"{project.Name}\\";
+                var foundNode = context.Nodes.Find(new Guid(nodeId.Id));
+                System.IO.File.Delete(currentDirectory + userFolderName + projectName + foundNode.VideoFileName);
+
+                foundNode.VideoFileName = "";
+                context.Nodes.Update(foundNode);
+                context.SaveChanges();
+
+
+                return Json(new TransportResult(12, $"Successful removed video", true));
+            }
+        }
+
+        /// <summary>
         /// Edit node in database
         /// </summary>
         /// <returns></returns>
@@ -196,7 +261,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpPost("EditNode")]
-        public async Task<IActionResult> EditNode(EditNodeRequest editNode)
+        public async Task<IActionResult> EditNode([FromBody]EditNodeRequest editNode)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
@@ -211,21 +276,6 @@ namespace Interchoice.Controllers
                 foundNode.Name = editNode.Name;
                 foundNode.Description = editNode.Description;
                 foundNode.ButtonName = editNode.ButtonName;
-                if (HttpContext.Request.Form.Files[0] != null)
-                {
-                    var file = HttpContext.Request.Form.Files[0];
-                    using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + file.FileName))
-                    {
-                        foundNode.VideoFileName = file.FileName;
-                        file.CopyTo(fileStream);
-                        fileStream.Flush();
-                    }
-                }
-                /*using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + editNode.VideoFile.FileName))
-                {
-                    editNode.VideoFile.CopyTo(fileStream);
-                    fileStream.Flush();
-                }*/
 
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();
