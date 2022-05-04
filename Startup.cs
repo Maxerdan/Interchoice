@@ -2,6 +2,7 @@ using Interchoice.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +42,6 @@ namespace Interchoice
             })
                 .AddEntityFrameworkStores<ApplicationContext>()
                 .AddDefaultTokenProviders();
-
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -50,6 +50,12 @@ namespace Interchoice
 
             services.AddControllersWithViews();
             services.AddMvc();
+            services.Configure<FormOptions>(options =>
+            {
+                options.ValueCountLimit = 10; //default 1024
+                options.ValueLengthLimit = int.MaxValue; //not recommended value
+                options.MultipartBodyLengthLimit = long.MaxValue; //not recommended value
+            });
             services.AddCors();
             services.AddSwaggerGen(c =>
             {

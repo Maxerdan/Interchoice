@@ -43,16 +43,25 @@ namespace Interchoice.Controllers
             public IFormFile file { get; set; }
         }
 
-        [HttpPost("Test")]
-        public IActionResult Test(FileUploadAPI formFile)
+        [HttpPost("Test2")]
+        public IActionResult Test2()
         {
-            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            /*using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 context.ProjectsInfo = context.Set<ProjectInfo>();
-                context.ProjectsInfo.Add(new ProjectInfo() { UserId = "1", Name = "name", FullDescription = "full", ShortDescription = "short", Overview = formFile.file.Name });
+                context.ProjectsInfo.Add(new ProjectInfo() { UserId = "1", Name = "name", FullDescription = "full", ShortDescription = "short", Overview = fileUploadAPI.file.Name });
                 context.SaveChanges();
                 return Ok();
+            }*/
+            if (HttpContext.Request.Form.Files[0] != null)
+            {
+                var file = HttpContext.Request.Form.Files[0];
+                using (FileStream fs = new FileStream(currentDirectory + "\\" + file.FileName, FileMode.CreateNew, FileAccess.Write, FileShare.Write))
+                {
+                    file.CopyTo(fs);
+                }
             }
+            return Ok();
         }
 
         [Authorize]
@@ -64,6 +73,73 @@ namespace Interchoice.Controllers
             return Ok($"{smt}");
         }
 
+        /// <summary>
+        /// Remove connection between nodes from(parent) node id to (child) node id
+        /// </summary>
+        /// <param name="connectRequest"></param>
+        /// <returns></returns>
+        /// <response code="200 (11)">Successful remove connection between nodes</response>
+        [Authorize]
+        [HttpGet("RemoveNodesConnection")]
+        public async Task<IActionResult> RemoveNodesConnection(ConnectRequest connectRequest)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
+                if (!string.IsNullOrEmpty(foundParentNode.ChildGuids))
+                    foundParentNode.ChildGuids= foundParentNode.ChildGuids.Replace($"{connectRequest.ToId}", "");
+                context.Nodes.Update(foundParentNode);
+                context.SaveChanges();
+
+                var foundChildNode = context.Nodes.Find(new Guid(connectRequest.ToId));
+                if (!string.IsNullOrEmpty(foundChildNode.ParentGuids))
+                    foundChildNode.ParentGuids = foundChildNode.ParentGuids.Replace($"{connectRequest.FromId}", "");
+                context.Nodes.Update(foundChildNode);
+                context.SaveChanges();
+
+                return Json(new TransportResult(11, $"Successful remove connection between nodes", true));
+            }
+        }
+
+        /// <summary>
+        /// Connects nodes from(parent) node id to (child) node id
+        /// </summary>
+        /// <param name="connectRequest"></param>
+        /// <returns></returns>
+        /// <response code="200 (10)">Successful connect nodes</response>
+        [Authorize]
+        [HttpGet("ConnectNodes")]
+        public async Task<IActionResult> ConnectNodes(ConnectRequest connectRequest)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
+                if (string.IsNullOrEmpty(foundParentNode.ChildGuids))
+                    foundParentNode.ChildGuids = connectRequest.ToId;
+                else
+                    foundParentNode.ChildGuids += $"\n{connectRequest.ToId}";
+                context.Nodes.Update(foundParentNode);
+                context.SaveChanges();
+
+                var foundChildNode = context.Nodes.Find(new Guid(connectRequest.ToId));
+                if (string.IsNullOrEmpty(foundChildNode.ParentGuids))
+                    foundChildNode.ParentGuids = connectRequest.FromId;
+                else
+                    foundChildNode.ParentGuids += $"\n{connectRequest.FromId}";
+                context.Nodes.Update(foundChildNode);
+                context.SaveChanges();
+
+                return Json(new TransportResult(10, $"Successful connect nodes", true));
+            }
+        }
+
+
+        /// <summary>
+        /// Returns video url by node id
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        /// <response code="200 (9)">VideoUrl</response>
         [Authorize]
         [HttpGet("GetVideoUrl")]
         public async Task<IActionResult> GetVideoUrl(Ids node)
@@ -73,12 +149,12 @@ namespace Interchoice.Controllers
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.ToList().Where(x => x.NodesId.Contains(node.Id)).First();
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(node.Id)).First();
                 var projectName = $"{project.Name}\\";
-                var foundNode = context.Nodes.Find(node.Id);
+                var foundNode = context.Nodes.Find(new Guid(node.Id));
 
-                var videoLocalUrl = $"localhost:5000" + userFolderName + projectName + foundNode.VideoFileName;
-                return Json(new TransportResult(8, $"", true, videoLocalUrl));
+                var videoLocalUrl = $"https://localhost:5001" + userFolderName + projectName + foundNode.VideoFileName;
+                return Json(new TransportResult(9, $"", true, videoLocalUrl));
             }
         }
 
@@ -94,16 +170,16 @@ namespace Interchoice.Controllers
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var foundNode = context.Nodes.Find(node.Id);
+                var foundNode = context.Nodes.Find(new Guid(node.Id));
                 context.Nodes.Remove(foundNode);
-
+                context.SaveChanges();
 
                 var nodes = context.Nodes.ToList();
-                foreach(var n in nodes)
+                foreach (var n in nodes)
                 {
-                    if (n.ParentGuids.Contains(node.Id))
+                    if (n.ParentGuids != null && n.ParentGuids.Contains(node.Id))
                         n.ParentGuids.Replace(node.Id, "");
-                    if (n.ChildGuids.Contains(node.Id))
+                    if (n.ChildGuids != null && n.ChildGuids.Contains(node.Id))
                         n.ChildGuids.Replace(node.Id, "");
                 }
                 context.UpdateRange(nodes);
@@ -127,7 +203,7 @@ namespace Interchoice.Controllers
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.ToList().Where(x=>x.NodesId.Contains(editNode.Id.ToString())).First();
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(editNode.Id.ToString())).First();
                 var projectName = $"{project.Name}\\";
 
                 context.Nodes = context.Set<Node>();
@@ -135,11 +211,21 @@ namespace Interchoice.Controllers
                 foundNode.Name = editNode.Name;
                 foundNode.Description = editNode.Description;
                 foundNode.ButtonName = editNode.ButtonName;
-                using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + editNode.VideoFile.FileName))
+                if (HttpContext.Request.Form.Files[0] != null)
+                {
+                    var file = HttpContext.Request.Form.Files[0];
+                    using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + file.FileName))
+                    {
+                        foundNode.VideoFileName = file.FileName;
+                        file.CopyTo(fileStream);
+                        fileStream.Flush();
+                    }
+                }
+                /*using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + editNode.VideoFile.FileName))
                 {
                     editNode.VideoFile.CopyTo(fileStream);
                     fileStream.Flush();
-                }
+                }*/
 
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();
