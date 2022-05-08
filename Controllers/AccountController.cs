@@ -170,22 +170,22 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (8)">Successful deleted node</response>
         [Authorize]
-        [HttpDelete("scene/{id}/video")]
-        public async Task<IActionResult> RemoveNode(Guid id)
+        [HttpDelete("RemoveNode")]
+        public async Task<IActionResult> RemoveNode(Ids node)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var foundNode = context.Nodes.Find(id);
+                var foundNode = context.Nodes.Find(new Guid(node.Id));
                 context.Nodes.Remove(foundNode);
                 context.SaveChanges();
 
                 var nodes = context.Nodes.ToList();
                 foreach (var n in nodes)
                 {
-                    if (n.ParentGuids != null && n.ParentGuids.Contains(id.ToString()))
-                        n.ParentGuids.Replace(id.ToString(), "");
-                    if (n.ChildGuids != null && n.ChildGuids.Contains(id.ToString()))
-                        n.ChildGuids.Replace(id.ToString(), "");
+                    if (n.ParentGuids != null && n.ParentGuids.Contains(node.Id))
+                        n.ParentGuids.Replace(node.Id, "");
+                    if (n.ChildGuids != null && n.ChildGuids.Contains(node.Id))
+                        n.ChildGuids.Replace(node.Id, "");
                 }
                 context.UpdateRange(nodes);
                 context.SaveChanges();
@@ -200,17 +200,17 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (11)">Successful load video</response>
         [Authorize]
-        [HttpPost("LoadVideo")]
-        public async Task<IActionResult> LoadVideo(LoadVideoRequest loadVideo)
+        [HttpPost("scene/{id}/video")]
+        public async Task<IActionResult> LoadVideo(Guid id)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(loadVideo.Id.ToString())).First();
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
                 var projectName = $"{project.Name}\\";
-                var foundNode = context.Nodes.Find(loadVideo.Id);
+                var foundNode = context.Nodes.Find(id);
 
                 if (HttpContext.Request.Form.Files[0] != null)
                 {
@@ -236,17 +236,17 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (12)">Successful removed video</response>
         [Authorize]
-        [HttpDelete("RemoveVideo")]
-        public async Task<IActionResult> RemoveVideo(Ids nodeId)
+        [HttpDelete("scene/{id}/video")]
+        public async Task<IActionResult> RemoveVideo(Guid id)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(nodeId.Id.ToString())).First();
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
                 var projectName = $"{project.Name}\\";
-                var foundNode = context.Nodes.Find(new Guid(nodeId.Id));
+                var foundNode = context.Nodes.Find(id);
                 System.IO.File.Delete(currentDirectory + userFolderName + projectName + foundNode.VideoFileName);
 
                 foundNode.VideoFileName = "";
