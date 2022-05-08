@@ -446,7 +446,7 @@ namespace Interchoice.Controllers
             var result = await _signInManager.PasswordSignInAsync(loginVm.Email, loginVm.Password, false, false);
             if (!result.Succeeded)
             {
-                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(new TransportResult(130, $"Email or password is incorrect", false));
             }
 
