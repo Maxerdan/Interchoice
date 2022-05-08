@@ -140,19 +140,24 @@ namespace Interchoice.Controllers
         /// <param name="node"></param>
         /// <returns></returns>
         /// <response code="200 (9)">VideoUrl</response>
+        /// <response code="404 (190)">Node has no video file</response>
         [Authorize]
-        [HttpGet("GetVideoUrl")]
-        public async Task<IActionResult> GetVideoUrl(Ids node)
+        [HttpGet("scene/{id}/video")]
+        public async Task<IActionResult> GetVideoUrl(Guid id)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(node.Id)).First();
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
                 var projectName = $"{project.Name}\\";
-                var foundNode = context.Nodes.Find(new Guid(node.Id));
-
+                var foundNode = context.Nodes.Find(id);
+                if (string.IsNullOrEmpty(foundNode.VideoFileName))
+                {
+                    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return Json(new TransportResult(190, $"Node has no video file", false));
+                }
                 var videoLocalUrl = $"https://localhost:5001" + userFolderName + projectName + foundNode.VideoFileName;
                 return Json(new TransportResult(9, $"", true, videoLocalUrl));
             }
@@ -165,22 +170,22 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (8)">Successful deleted node</response>
         [Authorize]
-        [HttpDelete("RemoveNode")]
-        public async Task<IActionResult> RemoveNode(Ids node)
+        [HttpDelete("scene/{id}/video")]
+        public async Task<IActionResult> RemoveNode(Guid id)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var foundNode = context.Nodes.Find(new Guid(node.Id));
+                var foundNode = context.Nodes.Find(id);
                 context.Nodes.Remove(foundNode);
                 context.SaveChanges();
 
                 var nodes = context.Nodes.ToList();
                 foreach (var n in nodes)
                 {
-                    if (n.ParentGuids != null && n.ParentGuids.Contains(node.Id))
-                        n.ParentGuids.Replace(node.Id, "");
-                    if (n.ChildGuids != null && n.ChildGuids.Contains(node.Id))
-                        n.ChildGuids.Replace(node.Id, "");
+                    if (n.ParentGuids != null && n.ParentGuids.Contains(id.ToString()))
+                        n.ParentGuids.Replace(id.ToString(), "");
+                    if (n.ChildGuids != null && n.ChildGuids.Contains(id.ToString()))
+                        n.ChildGuids.Replace(id.ToString(), "");
                 }
                 context.UpdateRange(nodes);
                 context.SaveChanges();
@@ -260,19 +265,19 @@ namespace Interchoice.Controllers
         /// <response code="200 (7)">Successful edit node</response>
         [Authorize]
         [EnableCors]
-        [HttpPost("EditNode")]
-        public async Task<IActionResult> EditNode([FromBody]EditNodeRequest editNode)
+        [HttpPut("scene/{id}/video")]
+        public async Task<IActionResult> EditNode(Guid id, [FromBody]EditNodeRequest editNode)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(editNode.Id.ToString())).First();
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
                 var projectName = $"{project.Name}\\";
 
                 context.Nodes = context.Set<Node>();
-                var foundNode = context.Nodes.Find(editNode.Id);
+                var foundNode = context.Nodes.Find(id);
                 foundNode.Name = editNode.Name;
                 foundNode.Description = editNode.Description;
                 foundNode.ButtonName = editNode.ButtonName;
