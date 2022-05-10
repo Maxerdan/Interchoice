@@ -19,7 +19,7 @@ namespace Interchoice
 {
     public class Startup
     {
-        public static string _conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa89699;User Id=db_a856b2_gomisa89699_admin;Password=gomisa8969";
+        public static string _conStr = "Data Source=SQL8003.site4now.net;Initial Catalog=db_a856b2_gomisa8777;User Id=db_a856b2_gomisa8777_admin;Password=gomisa8969";
         public static string corsName = "frontend_policy";
 
         public Startup(IConfiguration configuration)

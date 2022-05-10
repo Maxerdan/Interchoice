@@ -47,7 +47,6 @@ namespace Interchoice.Controllers
         [EnableCors]
         public IActionResult Test2()
         {
-            
             /*using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 context.ProjectsInfo = context.Set<ProjectInfo>();
@@ -71,7 +70,6 @@ namespace Interchoice.Controllers
         [HttpGet("Test")]
         public IActionResult Test()
         {
-            
             var smt = GetValue(HttpContext.User, ClaimTypes.Name);
 
             return Ok($"{smt}");
@@ -85,10 +83,9 @@ namespace Interchoice.Controllers
         /// <response code="200 (11)">Successful remove connection between nodes</response>
         [Authorize]
         [EnableCors]
-        [HttpGet("RemoveNodesConnection")]
+        [HttpDelete("nodes-connection")]
         public async Task<IActionResult> RemoveNodesConnection(ConnectRequest connectRequest)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
@@ -115,10 +112,9 @@ namespace Interchoice.Controllers
         /// <response code="200 (10)">Successful connect nodes</response>
         [Authorize]
         [EnableCors]
-        [HttpGet("ConnectNodes")]
+        [HttpPost("nodes-connection")]
         public async Task<IActionResult> ConnectNodes(ConnectRequest connectRequest)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
@@ -154,14 +150,13 @@ namespace Interchoice.Controllers
         [HttpGet("scene/{id}/video")]
         public async Task<IActionResult> GetVideoUrl(Guid id)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
-                var userFolderName = $"\\{emailName}\\";
+                var userFolderName = $"/{emailName}/";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.Name}\\";
+                var projectName = $"{project.ProjectId}/";
                 var foundNode = context.Nodes.Find(id);
                 if (string.IsNullOrEmpty(foundNode.VideoFileName))
                 {
@@ -174,6 +169,23 @@ namespace Interchoice.Controllers
         }
 
         /// <summary>
+        /// Returns Node
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [EnableCors]
+        [HttpGet("scene/{id}")]
+        public async Task<IActionResult> GetNode(Guid id)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var foundNode = context.Nodes.Find(id);
+                return Json(foundNode);
+            }
+        }
+
+        /// <summary>
         /// Removes node with id and all connections
         /// </summary>
         /// <param name="node"></param>
@@ -181,23 +193,22 @@ namespace Interchoice.Controllers
         /// <response code="200 (8)">Successful deleted node</response>
         [Authorize]
         [EnableCors]
-        [HttpDelete("RemoveNode")]
-        public async Task<IActionResult> RemoveNode(Ids node)
+        [HttpDelete("scene/{id}")]
+        public async Task<IActionResult> RemoveNode(Guid id)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var foundNode = context.Nodes.Find(new Guid(node.Id));
+                var foundNode = context.Nodes.Find(id);
                 context.Nodes.Remove(foundNode);
                 context.SaveChanges();
 
                 var nodes = context.Nodes.ToList();
                 foreach (var n in nodes)
                 {
-                    if (n.ParentGuids != null && n.ParentGuids.Contains(node.Id))
-                        n.ParentGuids.Replace(node.Id, "");
-                    if (n.ChildGuids != null && n.ChildGuids.Contains(node.Id))
-                        n.ChildGuids.Replace(node.Id, "");
+                    if (n.ParentGuids != null && n.ParentGuids.Contains(id.ToString()))
+                        n.ParentGuids.Replace(id.ToString(), "");
+                    if (n.ChildGuids != null && n.ChildGuids.Contains(id.ToString()))
+                        n.ChildGuids.Replace(id.ToString(), "");
                 }
                 context.UpdateRange(nodes);
                 context.SaveChanges();
@@ -213,17 +224,16 @@ namespace Interchoice.Controllers
         /// <response code="200 (11)">Successful load video</response>
         [Authorize]
         [EnableCors]
-        [HttpPost("scene/{id}/video")]
+        [HttpPut("scene/{id}/video")]
         public async Task<IActionResult> LoadVideo(Guid id)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.Name}\\";
+                var projectName = $"{project.ProjectId}\\";
                 var foundNode = context.Nodes.Find(id);
 
                 if (HttpContext.Request.Form.Files[0] != null)
@@ -254,14 +264,13 @@ namespace Interchoice.Controllers
         [HttpDelete("scene/{id}/video")]
         public async Task<IActionResult> RemoveVideo(Guid id)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.Name}\\";
+                var projectName = $"{project.ProjectId}\\";
                 var foundNode = context.Nodes.Find(id);
                 System.IO.File.Delete(currentDirectory + userFolderName + projectName + foundNode.VideoFileName);
 
@@ -274,6 +283,23 @@ namespace Interchoice.Controllers
             }
         }
 
+        [Authorize]
+        [EnableCors]
+        [HttpPut("scene/{id}/coordinates")]
+        public async Task<IActionResult> EditCoordinates(Guid id, Point point)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var foundNode = context.Nodes.Find(id);
+                foundNode.X = point.X;
+                foundNode.Y = point.Y;
+
+                context.Nodes.Update(foundNode);
+                context.SaveChanges();
+                return Json(new TransportResult(12, $"Successful update coordinates"));
+            }
+        }
+
         /// <summary>
         /// Edit node in database
         /// </summary>
@@ -281,17 +307,16 @@ namespace Interchoice.Controllers
         /// <response code="200 (7)">Successful edit node</response>
         [Authorize]
         [EnableCors]
-        [HttpPut("scene/{id}/video")]
-        public async Task<IActionResult> EditNode(Guid id, [FromBody]EditNodeRequest editNode)
+        [HttpPut("scene/{id}")]
+        public async Task<IActionResult> EditNode(Guid id, EditNodeRequest editNode)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.Name}\\";
+                var projectName = $"{project.ProjectId}\\";
 
                 context.Nodes = context.Set<Node>();
                 var foundNode = context.Nodes.Find(id);
@@ -312,17 +337,16 @@ namespace Interchoice.Controllers
         /// <response code="200 (6)">Successful created node, return id</response>
         [Authorize]
         [EnableCors]
-        [HttpGet("CreateNode")]
-        public async Task<IActionResult> CreateNode(Ids projectsId)
+        [HttpPost("project/{id}/scenes")]
+        public async Task<IActionResult> CreateNode(Guid id)
         {
-            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var node = new Node();
                 context.Nodes = context.Set<Node>();
                 context.Nodes.Add(node);
 
-                var project = context.ProjectsInfo.Find(new Guid(projectsId.Id));
+                var project = context.ProjectsInfo.Find(id);
                 if (string.IsNullOrEmpty(project.NodesId))
                     project.NodesId = node.Id.ToString();
                 else
@@ -345,7 +369,6 @@ namespace Interchoice.Controllers
         [HttpGet("UserInfo")]
         public async Task<IActionResult> UserInfo()
         {
-            
             var email = GetValue(HttpContext.User, ClaimTypes.Name);
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
@@ -357,6 +380,74 @@ namespace Interchoice.Controllers
             return Json(new UserInfoResponse(user));
         }
 
+        [Authorize]
+        [EnableCors]
+        [HttpPut("project/{id}")]
+        public async Task<IActionResult> EditProject(Guid id, CreateProjectModel projectInfo)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                var emailName = email.Split('@').First();
+                var userFolderName = $"\\{emailName}\\";
+                var project = context.ProjectsInfo.Find(id);
+                var projectName = $"{project.ProjectId}\\";
+
+                var foundProject = context.ProjectsInfo.Find(id);
+                System.IO.File.Delete(currentDirectory + userFolderName + projectName + foundProject.Overview);
+                foundProject.Name = projectInfo.Name;
+                foundProject.Overview = projectInfo.Overview.FileName;
+                foundProject.ShortDescription = projectInfo.ShortDescription;
+                foundProject.FullDescription = projectInfo.FullDescription;
+                using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + projectInfo.Overview.FileName))
+                {
+                    projectInfo.Overview.CopyTo(fileStream);
+                    fileStream.Flush();
+                }
+                context.ProjectsInfo.Update(foundProject);
+                context.SaveChanges();
+                return Json(new TransportResult(11, $"Successful edit project"));
+            }
+        }
+
+        [Authorize]
+        [EnableCors]
+        [HttpDelete("project/{id}")]
+        public async Task<IActionResult> RemoveProject(Guid id)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var project = context.ProjectsInfo.Find(id);
+                context.ProjectsInfo.Remove(project);
+                context.SaveChanges();
+                return Json(new TransportResult(8, $"Successful deleted project"));
+            }
+        }
+
+        [Authorize]
+        [EnableCors]
+        [HttpGet("project/{id}/summary")]
+        public async Task<IActionResult> GetProjectSummary(Guid id)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var project = context.ProjectsInfo.Find(id);
+                var projectsummary = new ProjectInfoSummary(project, HttpContext);
+                return Json(projectsummary);
+            }
+        }
+
+        [Authorize]
+        [EnableCors]
+        [HttpGet("project/{id}")]
+        public async Task<IActionResult> GetProject(Guid id)
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var project = new ProjectInfoResponse(context.ProjectsInfo.Find(id));
+                return Json(project);
+            }
+        }
 
         /// <summary>
         /// Create project handle
@@ -367,16 +458,16 @@ namespace Interchoice.Controllers
         /// <response code="403 (140)">Exception message</response>
         [Authorize]
         [EnableCors]
-        [HttpPost("CreateProject")]
+        [HttpPost("project")]
         public async Task<IActionResult> CreateProject(CreateProjectModel projectModel)
         {
-            
             try
             {
+                var projectId = Guid.NewGuid();
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
                 var userFolderName = $"\\{emailName}\\";
-                var projectName = $"{projectModel.Name}\\";
+                var projectName = $"{projectId}\\";
                 var user = await _userManager.FindByEmailAsync(email);
                 if (!Directory.Exists(currentDirectory + userFolderName))
                     Directory.CreateDirectory(currentDirectory + userFolderName);
@@ -391,11 +482,12 @@ namespace Interchoice.Controllers
                         context.ProjectsInfo = context.Set<ProjectInfo>();
                         var project = new ProjectInfo()
                         {
+                            ProjectId = projectId,
                             UserId = user.Id,
                             Name = projectModel.Name,
                             FullDescription = projectModel.FullDescription,
                             ShortDescription = projectModel.ShortDescription,
-                            Overview = projectModel.Overview.Name
+                            Overview = projectModel.Overview.FileName
                         };
                         context.ProjectsInfo.Add(project);
 
@@ -425,7 +517,6 @@ namespace Interchoice.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterViewModel registerVm)
         {
-            
             if (!IsValidEmailAddress(registerVm.Email))
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
@@ -462,7 +553,6 @@ namespace Interchoice.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> AuthenticateAsync([FromBody] LoginViewModel loginVm)
         {
-            
             var user = await _userManager.FindByEmailAsync(loginVm.Email);
 
             var result = await _signInManager.PasswordSignInAsync(loginVm.Email, loginVm.Password, false, false);
@@ -489,7 +579,6 @@ namespace Interchoice.Controllers
         [EnableCors]
         public async Task<IActionResult> Logout()
         {
-            
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Json(new TransportResult(3, "Logout complete"));
         }

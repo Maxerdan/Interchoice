@@ -11,8 +11,6 @@ namespace Interchoice.Models.Graph
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string VideoName { get; set; } // remove
-
         public string ParentGuids { get; set; }
 
         public string ChildGuids { get; set; }
@@ -24,5 +22,9 @@ namespace Interchoice.Models.Graph
         public string Description { get; set; }
 
         public string ButtonName { get; set; }
+
+        public int X { get; set; }
+
+        public int Y { get; set; }
     }
 }
