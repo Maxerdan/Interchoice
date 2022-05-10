@@ -49,6 +49,7 @@ namespace Interchoice
                 });
 
             services.AddControllersWithViews();
+            services.AddCors();
             services.AddMvc();
             services.Configure<FormOptions>(options =>
             {
@@ -56,7 +57,6 @@ namespace Interchoice
                 options.ValueLengthLimit = int.MaxValue; //not recommended value
                 options.MultipartBodyLengthLimit = long.MaxValue; //not recommended value
             });
-            services.AddCors();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
