@@ -354,7 +354,7 @@ namespace Interchoice.Controllers
                 return Json(new TransportResult(150, $"No user found"));
             }
 
-            return Json(new TransportResult(5, $"", new UserInfoResponse(user)));
+            return Json(new UserInfoResponse(user));
         }
 
 
