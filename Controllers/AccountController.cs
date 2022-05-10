@@ -44,6 +44,7 @@ namespace Interchoice.Controllers
         }
 
         [HttpPost("Test2")]
+        [EnableCors]
         public IActionResult Test2()
         {
             /*using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
@@ -65,6 +66,7 @@ namespace Interchoice.Controllers
         }
 
         [Authorize]
+        [EnableCors]
         [HttpGet("Test")]
         public IActionResult Test()
         {
@@ -80,6 +82,7 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (11)">Successful remove connection between nodes</response>
         [Authorize]
+        [EnableCors]
         [HttpGet("RemoveNodesConnection")]
         public async Task<IActionResult> RemoveNodesConnection(ConnectRequest connectRequest)
         {
@@ -108,6 +111,7 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (10)">Successful connect nodes</response>
         [Authorize]
+        [EnableCors]
         [HttpGet("ConnectNodes")]
         public async Task<IActionResult> ConnectNodes(ConnectRequest connectRequest)
         {
@@ -142,6 +146,7 @@ namespace Interchoice.Controllers
         /// <response code="200 (9)">VideoUrl</response>
         /// <response code="404 (190)">Node has no video file</response>
         [Authorize]
+        [EnableCors]
         [HttpGet("scene/{id}/video")]
         public async Task<IActionResult> GetVideoUrl(Guid id)
         {
@@ -170,6 +175,7 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (8)">Successful deleted node</response>
         [Authorize]
+        [EnableCors]
         [HttpDelete("RemoveNode")]
         public async Task<IActionResult> RemoveNode(Ids node)
         {
@@ -200,6 +206,7 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (11)">Successful load video</response>
         [Authorize]
+        [EnableCors]
         [HttpPost("scene/{id}/video")]
         public async Task<IActionResult> LoadVideo(Guid id)
         {
@@ -236,6 +243,7 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (12)">Successful removed video</response>
         [Authorize]
+        [EnableCors]
         [HttpDelete("scene/{id}/video")]
         public async Task<IActionResult> RemoveVideo(Guid id)
         {
@@ -294,6 +302,7 @@ namespace Interchoice.Controllers
         /// <returns></returns>
         /// <response code="200 (6)">Successful created node, return id</response>
         [Authorize]
+        [EnableCors]
         [HttpGet("CreateNode")]
         public async Task<IActionResult> CreateNode(Ids projectsId)
         {
@@ -322,6 +331,7 @@ namespace Interchoice.Controllers
         /// <response code="200 (5)">Successful return user info</response>
         /// <response code="403 (150)">No user found</response>
         [Authorize]
+        [EnableCors]
         [HttpGet("UserInfo")]
         public async Task<IActionResult> UserInfo()
         {
