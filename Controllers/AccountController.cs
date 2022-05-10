@@ -103,7 +103,7 @@ namespace Interchoice.Controllers
                 context.Nodes.Update(foundChildNode);
                 context.SaveChanges();
 
-                return Json(new TransportResult(11, $"Successful remove connection between nodes", true));
+                return Json(new TransportResult(11, $"Successful remove connection between nodes"));
             }
         }
 
@@ -137,7 +137,7 @@ namespace Interchoice.Controllers
                 context.Nodes.Update(foundChildNode);
                 context.SaveChanges();
 
-                return Json(new TransportResult(10, $"Successful connect nodes", true));
+                return Json(new TransportResult(10, $"Successful connect nodes"));
             }
         }
 
@@ -166,10 +166,10 @@ namespace Interchoice.Controllers
                 if (string.IsNullOrEmpty(foundNode.VideoFileName))
                 {
                     Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return Json(new TransportResult(190, $"Node has no video file", false));
+                    return Json(new TransportResult(190, $"Node has no video file"));
                 }
                 var videoLocalUrl = $"https://localhost:5001" + userFolderName + projectName + foundNode.VideoFileName;
-                return Json(new TransportResult(9, $"", true, videoLocalUrl));
+                return Json(new TransportResult(9, $"", videoLocalUrl));
             }
         }
 
@@ -201,7 +201,7 @@ namespace Interchoice.Controllers
                 }
                 context.UpdateRange(nodes);
                 context.SaveChanges();
-                return Json(new TransportResult(8, $"Successful deleted node", true));
+                return Json(new TransportResult(8, $"Successful deleted node"));
             }
         }
 
@@ -239,7 +239,7 @@ namespace Interchoice.Controllers
 
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();
-                return Json(new TransportResult(11, $"Successful load video", true));
+                return Json(new TransportResult(11, $"Successful load video"));
             }
         }
 
@@ -270,7 +270,7 @@ namespace Interchoice.Controllers
                 context.SaveChanges();
 
 
-                return Json(new TransportResult(12, $"Successful removed video", true));
+                return Json(new TransportResult(12, $"Successful removed video"));
             }
         }
 
@@ -301,7 +301,7 @@ namespace Interchoice.Controllers
 
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();
-                return Json(new TransportResult(7, $"Successful edit node", true));
+                return Json(new TransportResult(7, $"Successful edit node"));
             }
         }
 
@@ -330,7 +330,7 @@ namespace Interchoice.Controllers
                 context.ProjectsInfo.Update(project);
 
                 context.SaveChanges();
-                return Json(new TransportResult(6, $"Successful created node", true, node.Id));
+                return Json(new TransportResult(6, $"Successful created node", node.Id));
             }
         }
 
@@ -351,12 +351,10 @@ namespace Interchoice.Controllers
             if (user == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Json(new TransportResult(150, $"No user found", false));
+                return Json(new TransportResult(150, $"No user found"));
             }
 
-            var userInfoJson = JsonSerializer.Serialize(new UserInfoResponse(user));
-
-            return Json(new TransportResult(5, $"", true, userInfoJson));
+            return Json(new TransportResult(5, $"", new UserInfoResponse(user)));
         }
 
 
@@ -403,14 +401,14 @@ namespace Interchoice.Controllers
 
 
                         context.SaveChanges();
-                        return Json(new TransportResult(4, $"Successful created project", true, project.ProjectId));
+                        return Json(new TransportResult(4, $"Successful created project", project.ProjectId));
                     }
                 }
             }
             catch (Exception ex)
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Json(new TransportResult(140, $"{ex.Message}", false));
+                return Json(new TransportResult(140, $"{ex.Message}"));
             }
         }
 
@@ -431,7 +429,7 @@ namespace Interchoice.Controllers
             if (!IsValidEmailAddress(registerVm.Email))
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Json(new TransportResult(100, $"'{registerVm.Email}' is not valid email", false));
+                return Json(new TransportResult(100, $"'{registerVm.Email}' is not valid email"));
             }
 
             var users = _userManager.Users.ToList();
@@ -439,17 +437,17 @@ namespace Interchoice.Controllers
             if (users.Any(x => x.Email == registerVm.Email))
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Json(new TransportResult(110, $"'{registerVm.Email}' is already in use", false));
+                return Json(new TransportResult(110, $"'{registerVm.Email}' is already in use"));
             }
 
             var user = new User() { UserName = registerVm.Email, Email = registerVm.Email, EmailConfirmed = true, FirstName = registerVm.FirstName, LastName = registerVm.LastName, BirthDate = registerVm.BirthDate, Country = registerVm.Country };
             var result = await _userManager.CreateAsync(user, registerVm.Password);
             if (result.Succeeded)
-                return Json(new TransportResult(1, $"Successful register for: '{user.UserName}'", true));
+                return Json(new TransportResult(1, $"Successful register for: '{user.UserName}'"));
             else
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Json(new TransportResult(120, $"Something went wrong while saving user to database: '{user.Email}' \n{string.Join("\n", result.Errors.Select(x => x.Description))}", false));
+                return Json(new TransportResult(120, $"Something went wrong while saving user to database: '{user.Email}' \n{string.Join("\n", result.Errors.Select(x => x.Description))}"));
             }
         }
 
@@ -471,7 +469,7 @@ namespace Interchoice.Controllers
             if (!result.Succeeded)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(new TransportResult(130, $"Email or password is incorrect", false));
+                return Json(new TransportResult(130, $"Email or password is incorrect"));
             }
 
             // authentication successful so generate jwt token
@@ -479,7 +477,7 @@ namespace Interchoice.Controllers
             await _userManager.UpdateAsync(user);
             await Authenticate(loginVm.Email);
 
-            return Json(new TransportResult(2, "", true, user.JwtToken));
+            return Json(new TransportResult(2, "", user.JwtToken));
         }
 
         /// <summary>
@@ -493,7 +491,7 @@ namespace Interchoice.Controllers
         {
             HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Json(new TransportResult(3, "Logout complete", true));
+            return Json(new TransportResult(3, "Logout complete"));
         }
 
         private bool IsValidEmailAddress(string email)
