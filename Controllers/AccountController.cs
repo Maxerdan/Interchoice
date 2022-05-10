@@ -47,7 +47,7 @@ namespace Interchoice.Controllers
         [EnableCors]
         public IActionResult Test2()
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             /*using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 context.ProjectsInfo = context.Set<ProjectInfo>();
@@ -71,7 +71,7 @@ namespace Interchoice.Controllers
         [HttpGet("Test")]
         public IActionResult Test()
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             var smt = GetValue(HttpContext.User, ClaimTypes.Name);
 
             return Ok($"{smt}");
@@ -88,7 +88,7 @@ namespace Interchoice.Controllers
         [HttpGet("RemoveNodesConnection")]
         public async Task<IActionResult> RemoveNodesConnection(ConnectRequest connectRequest)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
@@ -118,7 +118,7 @@ namespace Interchoice.Controllers
         [HttpGet("ConnectNodes")]
         public async Task<IActionResult> ConnectNodes(ConnectRequest connectRequest)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
@@ -154,7 +154,7 @@ namespace Interchoice.Controllers
         [HttpGet("scene/{id}/video")]
         public async Task<IActionResult> GetVideoUrl(Guid id)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
@@ -184,7 +184,7 @@ namespace Interchoice.Controllers
         [HttpDelete("RemoveNode")]
         public async Task<IActionResult> RemoveNode(Ids node)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var foundNode = context.Nodes.Find(new Guid(node.Id));
@@ -216,7 +216,7 @@ namespace Interchoice.Controllers
         [HttpPost("scene/{id}/video")]
         public async Task<IActionResult> LoadVideo(Guid id)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
@@ -254,7 +254,7 @@ namespace Interchoice.Controllers
         [HttpDelete("scene/{id}/video")]
         public async Task<IActionResult> RemoveVideo(Guid id)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
@@ -284,7 +284,7 @@ namespace Interchoice.Controllers
         [HttpPut("scene/{id}/video")]
         public async Task<IActionResult> EditNode(Guid id, [FromBody]EditNodeRequest editNode)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
@@ -315,7 +315,7 @@ namespace Interchoice.Controllers
         [HttpGet("CreateNode")]
         public async Task<IActionResult> CreateNode(Ids projectsId)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var node = new Node();
@@ -345,7 +345,7 @@ namespace Interchoice.Controllers
         [HttpGet("UserInfo")]
         public async Task<IActionResult> UserInfo()
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             var email = GetValue(HttpContext.User, ClaimTypes.Name);
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
@@ -370,7 +370,7 @@ namespace Interchoice.Controllers
         [HttpPost("CreateProject")]
         public async Task<IActionResult> CreateProject(CreateProjectModel projectModel)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             try
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
@@ -425,7 +425,7 @@ namespace Interchoice.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterViewModel registerVm)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             if (!IsValidEmailAddress(registerVm.Email))
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
@@ -462,7 +462,7 @@ namespace Interchoice.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> AuthenticateAsync([FromBody] LoginViewModel loginVm)
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             var user = await _userManager.FindByEmailAsync(loginVm.Email);
 
             var result = await _signInManager.PasswordSignInAsync(loginVm.Email, loginVm.Password, false, false);
@@ -489,7 +489,7 @@ namespace Interchoice.Controllers
         [EnableCors]
         public async Task<IActionResult> Logout()
         {
-            HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "true");
+            
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Json(new TransportResult(3, "Logout complete"));
         }

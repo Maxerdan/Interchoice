@@ -13,12 +13,14 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.AspNetCore.Http;
 
 namespace Interchoice
 {
     public class Startup
     {
         public static string _conStr = "Data Source=SQL8001.site4now.net;Initial Catalog=db_a856b2_gomisa89699;User Id=db_a856b2_gomisa89699_admin;Password=gomisa8969";
+        public static string corsName = "frontend_policy";
 
         public Startup(IConfiguration configuration)
         {
@@ -79,6 +81,7 @@ namespace Interchoice
             {
                 configuration.RootPath = "ClientApp/build";
             });
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -104,8 +107,9 @@ namespace Interchoice
             app.UseSpaStaticFiles();
 
             app.UseRouting();
-            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader());
 
+            app.UseCors(builder => builder.SetIsOriginAllowed(origin => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+                        
             app.UseAuthentication();
             app.UseAuthorization();
 
