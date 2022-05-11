@@ -1,20 +1,17 @@
-﻿using Interchoice.Models.Graph;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 
 namespace Interchoice.Models
 {
-    public class ProjectInfoSummary
+    public class ProjectInfoShort
     {
         private readonly HttpContext _httpContext;
 
-        public ProjectInfoSummary(ProjectInfo projectInfo, HttpContext httpContext)
+        public ProjectInfoShort(ProjectInfo projectInfo, HttpContext httpContext)
         {
             _httpContext = httpContext;
             ProjectId = projectInfo.ProjectId;
@@ -22,18 +19,7 @@ namespace Interchoice.Models
             Name = projectInfo.Name;
             ShortDescription = projectInfo.ShortDescription;
             FullDescription = projectInfo.FullDescription;
-
             PreviewUrl = GetPreviewUrl(projectInfo.Overview);
-            if (projectInfo.NodesId != null)
-            {
-                var nodesIds = projectInfo.NodesId.Split("\n").Select(x => new Guid(x)).ToList();
-                List<NodeSummary> nodesSummary = new List<NodeSummary>();
-                foreach (var nodeId in nodesIds)
-                    nodesSummary.Add(new NodeSummary(nodeId, httpContext));
-                NodesId = nodesSummary;
-            }
-            else
-                NodesId = new List<NodeSummary>();
         }
 
         public Guid ProjectId { get; set; }
@@ -42,7 +28,6 @@ namespace Interchoice.Models
         public string PreviewUrl { get; set; }
         public string ShortDescription { get; set; }
         public string FullDescription { get; set; }
-        public List<NodeSummary> NodesId { get; set; }
 
         private string GetPreviewUrl(string fileName)
         {

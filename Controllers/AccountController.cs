@@ -366,7 +366,7 @@ namespace Interchoice.Controllers
         /// <response code="403 (150)">No user found</response>
         [Authorize]
         [EnableCors]
-        [HttpGet("UserInfo")]
+        [HttpGet("user")]
         public async Task<IActionResult> UserInfo()
         {
             var email = GetValue(HttpContext.User, ClaimTypes.Name);
@@ -421,6 +421,21 @@ namespace Interchoice.Controllers
                 context.ProjectsInfo.Remove(project);
                 context.SaveChanges();
                 return Json(new TransportResult(8, $"Successful deleted project"));
+            }
+        }
+
+        [Authorize]
+        [EnableCors]
+        [HttpGet("user/projects")]
+        public async Task<IActionResult> GetUserProjects()
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                var user = await _userManager.FindByEmailAsync(email);
+                var projects = context.ProjectsInfo.Where(x=>x.UserId == user.Id.ToString()).ToList();
+                var projectsShort = projects.Select(x => new ProjectInfoShort(x, HttpContext));
+                return Json(projectsShort);
             }
         }
 
