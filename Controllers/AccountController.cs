@@ -441,6 +441,19 @@ namespace Interchoice.Controllers
 
         [Authorize]
         [EnableCors]
+        [HttpGet("projects")]
+        public async Task<IActionResult> GetAllProjects()
+        {
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var projects = context.ProjectsInfo.ToList();
+                var projectsShort = projects.Select(x => new ProjectInfoShort(x, HttpContext));
+                return Json(projectsShort);
+            }
+        }
+
+        [Authorize]
+        [EnableCors]
         [HttpGet("project/{id}/summary")]
         public async Task<IActionResult> GetProjectSummary(Guid id)
         {
