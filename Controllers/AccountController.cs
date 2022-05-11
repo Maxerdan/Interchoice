@@ -24,7 +24,7 @@ namespace Interchoice.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly string currentDirectory = Directory.GetCurrentDirectory() + $"\\ClientApp\\public";
+        private readonly string currentDirectory = Directory.GetCurrentDirectory() + $"\\ClientApp\\build";
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
