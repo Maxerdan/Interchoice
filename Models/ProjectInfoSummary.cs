@@ -24,16 +24,19 @@ namespace Interchoice.Models
             FullDescription = projectInfo.FullDescription;
 
             PreviewUrl = GetPreviewUrl(projectInfo.Overview);
-            if (projectInfo.NodesId != null)
+            if (!string.IsNullOrEmpty(projectInfo.NodesId))
             {
                 var nodesIds = projectInfo.NodesId.Split("\n").Select(x => new Guid(x)).ToList();
                 List<NodeSummary> nodesSummary = new List<NodeSummary>();
                 foreach (var nodeId in nodesIds)
                     nodesSummary.Add(new NodeSummary(nodeId, httpContext));
-                NodesId = nodesSummary;
+                Nodes = nodesSummary;
+            FirstNode = new NodeSummary(new Guid(projectInfo.NodesId.Split("\n").First()), httpContext);
             }
             else
-                NodesId = new List<NodeSummary>();
+            {
+                Nodes = new List<NodeSummary>();
+            }
         }
 
         public Guid ProjectId { get; set; }
@@ -42,7 +45,8 @@ namespace Interchoice.Models
         public string PreviewUrl { get; set; }
         public string ShortDescription { get; set; }
         public string FullDescription { get; set; }
-        public List<NodeSummary> NodesId { get; set; }
+        public List<NodeSummary> Nodes { get; set; }
+        public NodeSummary FirstNode { get; set; }
 
         private string GetPreviewUrl(string fileName)
         {
@@ -51,7 +55,7 @@ namespace Interchoice.Models
             var userFolderName = $"/{emailName}/";
             var projectName = $"{ProjectId}/";
 
-            return "https://localhost:5001" + userFolderName + projectName + fileName;
+            return Constants.Https + userFolderName + projectName + fileName;
         }
 
         private string GetValue(ClaimsPrincipal principal, string key)

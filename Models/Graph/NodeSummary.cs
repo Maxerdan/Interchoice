@@ -28,10 +28,14 @@ namespace Interchoice.Models.Graph
                 if (string.IsNullOrEmpty(foundNode.VideoFileName))
                     VideoUrl = "";
                 else
-                    VideoUrl = $"https://localhost:5001" + userFolderName + projectName + foundNode.VideoFileName;
+                    VideoUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
 
                 ParentGuids = foundNode.ParentGuids?.Split("\n").Select(x=>new Guid(x)).ToList();
                 ChildGuids = foundNode.ChildGuids?.Split("\n").Select(x => new Guid(x)).ToList();
+                if(ParentGuids is null)
+                    ParentGuids = new List<Guid>();
+                if(ChildGuids is null)
+                    ChildGuids = new List<Guid>();
                 Name = foundNode.Name;
                 Description = foundNode.Description;
                 ButtonName = foundNode.ButtonName;

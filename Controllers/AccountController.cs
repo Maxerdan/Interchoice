@@ -43,38 +43,6 @@ namespace Interchoice.Controllers
             public IFormFile file { get; set; }
         }
 
-        [HttpPost("Test2")]
-        [EnableCors]
-        public IActionResult Test2()
-        {
-            /*using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
-            {
-                context.ProjectsInfo = context.Set<ProjectInfo>();
-                context.ProjectsInfo.Add(new ProjectInfo() { UserId = "1", Name = "name", FullDescription = "full", ShortDescription = "short", Overview = fileUploadAPI.file.Name });
-                context.SaveChanges();
-                return Ok();
-            }*/
-            if (HttpContext.Request.Form.Files[0] != null)
-            {
-                var file = HttpContext.Request.Form.Files[0];
-                using (FileStream fs = new FileStream(currentDirectory + "\\" + file.FileName, FileMode.CreateNew, FileAccess.Write, FileShare.Write))
-                {
-                    file.CopyTo(fs);
-                }
-            }
-            return Ok();
-        }
-
-        [Authorize]
-        [EnableCors]
-        [HttpGet("Test")]
-        public IActionResult Test()
-        {
-            var smt = GetValue(HttpContext.User, ClaimTypes.Name);
-
-            return Ok($"{smt}");
-        }
-
         /// <summary>
         /// Remove connection between nodes from(parent) node id to (child) node id
         /// </summary>
@@ -84,7 +52,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpDelete("nodes-connection")]
-        public async Task<IActionResult> RemoveNodesConnection(ConnectRequest connectRequest)
+        public async Task<IActionResult> RemoveNodesConnection([FromBody] ConnectRequest connectRequest)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
@@ -113,7 +81,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpPost("nodes-connection")]
-        public async Task<IActionResult> ConnectNodes(ConnectRequest connectRequest)
+        public async Task<IActionResult> ConnectNodes([FromBody] ConnectRequest connectRequest)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
@@ -163,7 +131,7 @@ namespace Interchoice.Controllers
                     Response.StatusCode = (int)HttpStatusCode.NotFound;
                     return Json(new TransportResult(190, $"Node has no video file"));
                 }
-                var videoLocalUrl = $"https://localhost:5001" + userFolderName + projectName + foundNode.VideoFileName;
+                var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
                 return Json(new TransportResult(9, $"", videoLocalUrl));
             }
         }
@@ -286,7 +254,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpPut("scene/{id}/coordinates")]
-        public async Task<IActionResult> EditCoordinates(Guid id, Point point)
+        public async Task<IActionResult> EditCoordinates(Guid id,[FromBody] Point point)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
@@ -308,7 +276,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpPut("scene/{id}")]
-        public async Task<IActionResult> EditNode(Guid id, EditNodeRequest editNode)
+        public async Task<IActionResult> EditNode(Guid id, [FromBody] EditNodeRequest editNode)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
@@ -343,6 +311,8 @@ namespace Interchoice.Controllers
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var node = new Node();
+                node.ParentGuids = string.Empty;
+                node.ChildGuids = string.Empty;
                 context.Nodes = context.Set<Node>();
                 context.Nodes.Add(node);
 
@@ -383,7 +353,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpPut("project/{id}")]
-        public async Task<IActionResult> EditProject(Guid id, CreateProjectModel projectInfo)
+        public async Task<IActionResult> EditProject(Guid id, [FromBody] CreateProjectModel projectInfo)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {

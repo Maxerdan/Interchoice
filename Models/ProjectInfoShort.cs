@@ -36,7 +36,7 @@ namespace Interchoice.Models
             var userFolderName = $"/{emailName}/";
             var projectName = $"{ProjectId}/";
 
-            return "https://localhost:5001" + userFolderName + projectName + fileName;
+            return Constants.Https + userFolderName + projectName + fileName;
         }
 
         private string GetValue(ClaimsPrincipal principal, string key)
