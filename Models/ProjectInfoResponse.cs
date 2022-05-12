@@ -18,9 +18,9 @@ namespace Interchoice.Models
             ShortDescription = projectInfo.ShortDescription;
             FullDescription = projectInfo.FullDescription;
             if (projectInfo.NodesId != null)
-                NodesId = projectInfo.NodesId.Split("\n").Select(x => new Guid(x)).ToList();
+                Nodes = projectInfo.NodesId.Split("\n").Select(x => new Guid(x)).ToList();
             else
-                NodesId = new List<Guid>();
+                Nodes = new List<Guid>();
         }
 
         public Guid ProjectId { get; set; }
@@ -29,6 +29,6 @@ namespace Interchoice.Models
         public string Overview { get; set; }
         public string ShortDescription { get; set; }
         public string FullDescription { get; set; }
-        public List<Guid> NodesId { get; set; }
+        public List<Guid> Nodes { get; set; }
     }
 }
