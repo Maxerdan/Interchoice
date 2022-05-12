@@ -171,7 +171,10 @@ namespace Interchoice.Controllers
                 context.SaveChanges();
 
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                project.NodesId = project.NodesId.Replace(id.ToString(), "");
+                if (project.NodesId == id.ToString())
+                    project.NodesId = "";
+                else
+                project.NodesId = project.NodesId.Replace("\n"+id.ToString(), "");
                 context.ProjectsInfo.Update(project);
                 context.SaveChanges();
 
