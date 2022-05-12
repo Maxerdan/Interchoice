@@ -170,6 +170,11 @@ namespace Interchoice.Controllers
                 context.Nodes.Remove(foundNode);
                 context.SaveChanges();
 
+                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
+                project.NodesId = project.NodesId.Replace(id.ToString(), "");
+                context.ProjectsInfo.Update(project);
+                context.SaveChanges();
+
                 var nodes = context.Nodes.ToList();
                 foreach (var n in nodes)
                 {
@@ -178,7 +183,7 @@ namespace Interchoice.Controllers
                     if (n.ChildGuids != null && n.ChildGuids.Contains(id.ToString()))
                         n.ChildGuids.Replace(id.ToString(), "");
                 }
-                context.UpdateRange(nodes);
+                context.Nodes.UpdateRange(nodes);
                 context.SaveChanges();
                 return Json(new TransportResult(8, $"Successful deleted node"));
             }

@@ -25,6 +25,8 @@ namespace Interchoice.Models.Graph
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
                 var projectName = $"{project.ProjectId}/";
                 var foundNode = context.Nodes.Find(id);
+                if (foundNode is null)
+                    return;
                 if (string.IsNullOrEmpty(foundNode.VideoFileName))
                     VideoUrl = "";
                 else
