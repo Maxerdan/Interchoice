@@ -29,9 +29,10 @@ namespace Interchoice.Models.Graph
                     VideoUrl = "";
                 else
                     VideoUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
-
+                if(foundNode.ParentGuids != "")
                 ParentGuids = foundNode.ParentGuids?.Split("\n").Select(x=>new Guid(x)).ToList();
-                ChildGuids = foundNode.ChildGuids?.Split("\n").Select(x => new Guid(x)).ToList();
+                if (foundNode.ChildGuids != "")
+                    ChildGuids = foundNode.ChildGuids?.Split("\n").Select(x => new Guid(x)).ToList();
                 if(ParentGuids is null)
                     ParentGuids = new List<Guid>();
                 if(ChildGuids is null)
