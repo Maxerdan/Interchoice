@@ -13,24 +13,21 @@ namespace Interchoice.Models
 {
     public class ProjectInfoSummary
     {
-        private readonly HttpContext _httpContext;
-
-        public ProjectInfoSummary(ProjectInfo projectInfo, HttpContext httpContext)
+        public ProjectInfoSummary(ProjectInfo projectInfo)
         {
-            _httpContext = httpContext;
             ProjectId = projectInfo.ProjectId;
             UserId = projectInfo.UserId;
             Name = projectInfo.Name;
             ShortDescription = projectInfo.ShortDescription;
             FullDescription = projectInfo.FullDescription;
 
-            PreviewUrl = GetPreviewUrl(projectInfo.Overview);
+            PreviewUrl = GetPreviewUrl(projectInfo);
             if (!string.IsNullOrEmpty(projectInfo.NodesId))
             {
                 var nodesIds = projectInfo.NodesId.Split("\n").Select(x => new Guid(x)).ToList();
                 List<NodeSummary> nodesSummary = new List<NodeSummary>();
                 foreach (var nodeId in nodesIds)
-                    nodesSummary.Add(new NodeSummary(nodeId, httpContext));
+                    nodesSummary.Add(new NodeSummary(nodeId, projectInfo.UserId));
                 Nodes = nodesSummary;
 
                 using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
@@ -45,7 +42,7 @@ namespace Interchoice.Models
                         return string.IsNullOrEmpty(node.ParentGuids);
                     }
                 if(nodeStringId != null)
-            FirstNode = new NodeSummary(new Guid(nodeStringId), httpContext);
+            FirstNode = new NodeSummary(new Guid(nodeStringId), projectInfo.UserId);
                 }
             }
             else
@@ -63,22 +60,18 @@ namespace Interchoice.Models
         public List<NodeSummary> Nodes { get; set; }
         public NodeSummary FirstNode { get; set; }
 
-        private string GetPreviewUrl(string fileName)
+        private string GetPreviewUrl(ProjectInfo projectInfo)
         {
-            var email = GetValue(_httpContext.User, ClaimTypes.Name);
-            var emailName = email.Split('@').First();
-            var userFolderName = $"/{emailName}/";
-            var projectName = $"{ProjectId}/";
+            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            {
+                var user = context.Users.Find(projectInfo.UserId);
+                var email = user.Email;
+                var emailName = email.Split('@').First();
+                var userFolderName = $"/{emailName}/";
+                var projectName = $"{ProjectId}/";
 
-            return Constants.Https + userFolderName + projectName + fileName;
-        }
-
-        private string GetValue(ClaimsPrincipal principal, string key)
-        {
-            if (principal == null)
-                return string.Empty;
-
-            return principal.FindFirstValue(key);
+                return Constants.Https + userFolderName + projectName + projectInfo.Overview;
+            }
         }
     }
 }

@@ -431,7 +431,6 @@ namespace Interchoice.Controllers
             }
         }
 
-        [Authorize]
         [EnableCors]
         [HttpGet("project/{id}/summary")]
         public async Task<IActionResult> GetProjectSummary(Guid id)
@@ -439,7 +438,7 @@ namespace Interchoice.Controllers
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var project = context.ProjectsInfo.Find(id);
-                var projectsummary = new ProjectInfoSummary(project, HttpContext);
+                var projectsummary = new ProjectInfoSummary(project);
                 return Json(projectsummary);
             }
         }
