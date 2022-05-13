@@ -22,7 +22,6 @@ namespace Interchoice
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls(Constants.Http, Constants.Https);
                 });
     }
 }
