@@ -1,5 +1,6 @@
 ﻿using Interchoice.Models.Graph;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -31,7 +32,21 @@ namespace Interchoice.Models
                 foreach (var nodeId in nodesIds)
                     nodesSummary.Add(new NodeSummary(nodeId, httpContext));
                 Nodes = nodesSummary;
-            FirstNode = new NodeSummary(new Guid(projectInfo.NodesId.Split("\n").First()), httpContext);
+
+                using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+                {
+                    var nodeStringId = projectInfo.NodesId.Split("\n").FirstOrDefault(GetNode);
+
+                    bool GetNode(string id)
+                    {
+                        var node = context.Nodes.Find(new Guid(id));
+                        if(node is null)
+                            return false;
+                        return string.IsNullOrEmpty(node.ParentGuids);
+                    }
+                if(nodeStringId != null)
+            FirstNode = new NodeSummary(new Guid(nodeStringId), httpContext);
+                }
             }
             else
             {

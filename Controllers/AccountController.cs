@@ -222,10 +222,11 @@ namespace Interchoice.Controllers
                         fileStream.Flush();
                     }
                 }
-
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();
-                return Json(new TransportResult(11, $"Successful load video"));
+
+                var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
+                return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
             }
         }
 
