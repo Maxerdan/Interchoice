@@ -24,7 +24,7 @@ namespace Interchoice.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly string currentDirectory = Directory.GetCurrentDirectory() + $"\\ClientApp\\build";
+        private readonly string currentDirectory = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "build");
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
@@ -122,16 +122,16 @@ namespace Interchoice.Controllers
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
-                var userFolderName = $"/{emailName}/";
+                var userFolderName = $"{emailName}";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.ProjectId}/";
+                var projectName = $"{project.ProjectId}";
                 var foundNode = context.Nodes.Find(id);
                 if (string.IsNullOrEmpty(foundNode.VideoFileName))
                 {
                     Response.StatusCode = (int)HttpStatusCode.NotFound;
                     return Json(new TransportResult(190, $"Node has no video file"));
                 }
-                var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
+                var videoLocalUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
                 return Json(new TransportResult(9, $"", videoLocalUrl));
             }
         }
@@ -207,15 +207,15 @@ namespace Interchoice.Controllers
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
-                var userFolderName = $"\\{emailName}\\";
+                var userFolderName = $"{emailName}";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.ProjectId}\\";
+                var projectName = $"{project.ProjectId}";
                 var foundNode = context.Nodes.Find(id);
 
                 if (HttpContext.Request.Form.Files[0] != null)
                 {
                     var file = HttpContext.Request.Form.Files[0];
-                    using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + file.FileName))
+                    using (FileStream fileStream = System.IO.File.Create(Path.Combine(currentDirectory, userFolderName, projectName, file.FileName)))
                     {
                         foundNode.VideoFileName = file.FileName;
                         file.CopyTo(fileStream);
@@ -244,11 +244,11 @@ namespace Interchoice.Controllers
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
-                var userFolderName = $"\\{emailName}\\";
+                var userFolderName = $"{emailName}";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.ProjectId}\\";
+                var projectName = $"{project.ProjectId}";
                 var foundNode = context.Nodes.Find(id);
-                System.IO.File.Delete(currentDirectory + userFolderName + projectName + foundNode.VideoFileName);
+                System.IO.File.Delete(Path.Combine(currentDirectory, userFolderName, projectName, foundNode.VideoFileName));
 
                 foundNode.VideoFileName = "";
                 context.Nodes.Update(foundNode);
@@ -288,12 +288,6 @@ namespace Interchoice.Controllers
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var email = GetValue(HttpContext.User, ClaimTypes.Name);
-                var emailName = email.Split('@').First();
-                var userFolderName = $"\\{emailName}\\";
-                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.ProjectId}\\";
-
                 context.Nodes = context.Set<Node>();
                 var foundNode = context.Nodes.Find(id);
                 foundNode.Name = editNode.Name;
@@ -367,17 +361,17 @@ namespace Interchoice.Controllers
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
-                var userFolderName = $"\\{emailName}\\";
+                var userFolderName = $"{emailName}";
                 var project = context.ProjectsInfo.Find(id);
-                var projectName = $"{project.ProjectId}\\";
+                var projectName = $"{project.ProjectId}";
 
                 var foundProject = context.ProjectsInfo.Find(id);
-                System.IO.File.Delete(currentDirectory + userFolderName + projectName + foundProject.Overview);
+                System.IO.File.Delete(Path.Combine(currentDirectory, userFolderName, projectName, foundProject.Overview));
                 foundProject.Name = projectInfo.Name;
                 foundProject.Overview = projectInfo.Overview.FileName;
                 foundProject.ShortDescription = projectInfo.ShortDescription;
                 foundProject.FullDescription = projectInfo.FullDescription;
-                using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + projectInfo.Overview.FileName))
+                using (FileStream fileStream = System.IO.File.Create(Path.Combine(currentDirectory, userFolderName, projectName, projectInfo.Overview.FileName)))
                 {
                     projectInfo.Overview.CopyTo(fileStream);
                     fileStream.Flush();
@@ -472,14 +466,14 @@ namespace Interchoice.Controllers
                 var projectId = Guid.NewGuid();
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var emailName = email.Split('@').First();
-                var userFolderName = $"\\{emailName}\\";
-                var projectName = $"{projectId}\\";
+                var userFolderName = $"{emailName}";
+                var projectName = $"{projectId}";
                 var user = await _userManager.FindByEmailAsync(email);
-                if (!Directory.Exists(currentDirectory + userFolderName))
-                    Directory.CreateDirectory(currentDirectory + userFolderName);
-                if (!Directory.Exists(currentDirectory + userFolderName + projectName))
-                    Directory.CreateDirectory(currentDirectory + userFolderName + projectName);
-                using (FileStream fileStream = System.IO.File.Create(currentDirectory + userFolderName + projectName + projectModel.Overview.FileName))
+                if (!Directory.Exists(Path.Combine(currentDirectory, userFolderName)))
+                    Directory.CreateDirectory(Path.Combine(currentDirectory, userFolderName));
+                if (!Directory.Exists(Path.Combine(currentDirectory, userFolderName, projectName)))
+                    Directory.CreateDirectory(Path.Combine(currentDirectory, userFolderName, projectName));
+                using (FileStream fileStream = System.IO.File.Create(Path.Combine(currentDirectory, userFolderName, projectName, projectModel.Overview.FileName)))
                 {
                     projectModel.Overview.CopyTo(fileStream);
                     fileStream.Flush();

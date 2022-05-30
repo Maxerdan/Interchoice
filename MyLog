@@ -1,0 +1,32 @@
+2022-05-30 21:27:33.942 +05:00 [INF] User profile is available. Using 'C:\Users\Viral\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2022-05-30 21:27:34.258 +05:00 [INF] Starting create-react-app server on port 62313...
+2022-05-30 21:27:34.424 +05:00 [INF] Now listening on: https://localhost:5001
+2022-05-30 21:27:34.424 +05:00 [INF] Now listening on: http://localhost:5000
+2022-05-30 21:27:34.424 +05:00 [INF] Application started. Press Ctrl+C to shut down.
+2022-05-30 21:27:34.424 +05:00 [INF] Hosting environment: Development
+2022-05-30 21:27:34.424 +05:00 [INF] Content root path: C:\Users\Viral\source\repos\Interchoice
+2022-05-30 21:27:35.977 +05:00 [INF] Request starting HTTP/2 GET https://localhost:5001/  
+2022-05-30 21:27:38.531 +05:00 [INF] > interchoice@0.1.0 start
+> rimraf ./build && react-scripts start
+
+i я╜вwdsя╜г: Project is running at http://172.29.176.1/
+
+2022-05-30 21:27:38.532 +05:00 [INF] i я╜вwdsя╜г: webpack output is served from 
+
+2022-05-30 21:27:43.387 +05:00 [INF] i я╜вwdsя╜г: Content not from webpack is served from C:\Users\Viral\source\repos\Interchoice\ClientApp\public
+i я╜вwdsя╜г: 404s will fallback to /
+Starting the development server...
+
+Compiled successfully!
+
+2022-05-30 21:27:45.487 +05:00 [INF] Request finished in 9513.0609ms 200 text/html; charset=UTF-8
+2022-05-30 21:27:45.491 +05:00 [INF] Request starting HTTP/2 GET https://localhost:5001/static/js/bundle.js  
+2022-05-30 21:27:45.491 +05:00 [INF] Request starting HTTP/2 GET https://localhost:5001/static/js/0.chunk.js  
+2022-05-30 21:27:45.491 +05:00 [INF] Request starting HTTP/2 GET https://localhost:5001/static/js/main.chunk.js  
+2022-05-30 21:27:45.506 +05:00 [INF] Request finished in 16.0629ms 304 
+2022-05-30 21:27:47.512 +05:00 [INF] Request finished in 2022.2806ms 304 
+2022-05-30 21:27:47.513 +05:00 [INF] Request finished in 2022.9238ms 304 
+2022-05-30 21:27:47.545 +05:00 [INF] Request starting HTTP/1.1 GET https://localhost:5001/sockjs-node  
+2022-05-30 21:27:47.549 +05:00 [INF] CORS policy execution successful.
+2022-05-30 21:27:47.638 +05:00 [INF] Request starting HTTP/2 GET https://localhost:5001/manifest.json  
+2022-05-30 21:27:47.644 +05:00 [INF] Request finished in 6.4201ms 304 
