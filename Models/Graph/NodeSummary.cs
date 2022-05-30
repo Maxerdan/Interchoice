@@ -11,15 +11,14 @@ namespace Interchoice.Models.Graph
 {
     public class NodeSummary
     {
-        private readonly HttpContext _httpContext;
-        public NodeSummary(Guid id, HttpContext httpContext)
+        public NodeSummary(Guid id, string userId)
         {
             Id = id;
-            _httpContext = httpContext;
 
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var email = GetValue(_httpContext.User, ClaimTypes.Name);
+                var user = context.Users.Find(userId);
+                var email = user.Email;
                 var emailName = email.Split('@').First();
                 var userFolderName = $"/{emailName}/";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
@@ -64,13 +63,5 @@ namespace Interchoice.Models.Graph
         public int X { get; set; }
 
         public int Y { get; set; }
-
-        private string GetValue(ClaimsPrincipal principal, string key)
-        {
-            if (principal == null)
-                return string.Empty;
-
-            return principal.FindFirstValue(key);
-        }
     }
 }
