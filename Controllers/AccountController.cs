@@ -59,13 +59,13 @@ namespace Interchoice.Controllers
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
                 if (!string.IsNullOrEmpty(foundParentNode.ChildGuids))
-                    foundParentNode.ChildGuids = foundParentNode.ChildGuids.Replace($"{connectRequest.ToId}", "");
+                    foundParentNode.ChildGuids = foundParentNode.ChildGuids.Replace($"\n{connectRequest.ToId}", "");
                 context.Nodes.Update(foundParentNode);
                 context.SaveChanges();
 
                 var foundChildNode = context.Nodes.Find(new Guid(connectRequest.ToId));
                 if (!string.IsNullOrEmpty(foundChildNode.ParentGuids))
-                    foundChildNode.ParentGuids = foundChildNode.ParentGuids.Replace($"{connectRequest.FromId}", "");
+                    foundChildNode.ParentGuids = foundChildNode.ParentGuids.Replace($"\n{connectRequest.FromId}", "");
                 context.Nodes.Update(foundChildNode);
                 context.SaveChanges();
 
@@ -88,16 +88,11 @@ namespace Interchoice.Controllers
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
                 if (string.IsNullOrEmpty(foundParentNode.ChildGuids))
-                    foundParentNode.ChildGuids = connectRequest.ToId;
-                else
                     foundParentNode.ChildGuids += $"\n{connectRequest.ToId}";
                 context.Nodes.Update(foundParentNode);
                 context.SaveChanges();
 
                 var foundChildNode = context.Nodes.Find(new Guid(connectRequest.ToId));
-                if (string.IsNullOrEmpty(foundChildNode.ParentGuids))
-                    foundChildNode.ParentGuids = connectRequest.FromId;
-                else
                     foundChildNode.ParentGuids += $"\n{connectRequest.FromId}";
                 context.Nodes.Update(foundChildNode);
                 context.SaveChanges();
@@ -420,7 +415,7 @@ namespace Interchoice.Controllers
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var user = await _userManager.FindByEmailAsync(email);
                 var projects = context.ProjectsInfo.Where(x=>x.UserId == user.Id.ToString()).ToList();
-                var projectsShort = projects.Select(x => new ProjectInfoShort(x));
+                var projectsShort = projects.Select(x => new ProjectInfoShort(x)).OrderByDescending(x=>x.);
                 return Json(projectsShort);
             }
         }
@@ -441,11 +436,19 @@ namespace Interchoice.Controllers
         [HttpGet("project/{id}/summary")]
         public async Task<IActionResult> GetProjectSummary(Guid id)
         {
-            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            try
             {
-                var project = context.ProjectsInfo.Find(id);
-                var projectsummary = new ProjectInfoSummary(project);
-                return Json(projectsummary);
+                using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+                {
+                    var project = context.ProjectsInfo.Find(id);
+                    var projectsummary = new ProjectInfoSummary(project);
+                    return Json(projectsummary);
+                }
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                return Json(new TransportResult(140, $"{ex.Message}\n{ex.StackTrace}"));
             }
         }
 

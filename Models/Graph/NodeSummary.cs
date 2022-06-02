@@ -32,9 +32,9 @@ namespace Interchoice.Models.Graph
                 else
                     VideoUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
                 if(foundNode.ParentGuids != "")
-                ParentGuids = foundNode.ParentGuids?.Split("\n").Select(x=>new Guid(x)).ToList();
+                    ParentGuids = foundNode.ParentGuids?.Split("\n").Where(x=>!string.IsNullOrEmpty(x)).Select(x=>new Guid(x)).ToList();
                 if (foundNode.ChildGuids != "")
-                    ChildGuids = foundNode.ChildGuids?.Split("\n").Select(x => new Guid(x)).ToList();
+                    ChildGuids = foundNode.ChildGuids?.Split("\n").Where(x => !string.IsNullOrEmpty(x)).Select(x => new Guid(x)).ToList();
                 if(ParentGuids is null)
                     ParentGuids = new List<Guid>();
                 if(ChildGuids is null)
@@ -42,6 +42,7 @@ namespace Interchoice.Models.Graph
                 Name = foundNode.Name;
                 Description = foundNode.Description;
                 ButtonName = foundNode.ButtonName;
+                Question = foundNode.Question;
                 X = foundNode.X;
                 Y = foundNode.Y;
             }
@@ -60,6 +61,8 @@ namespace Interchoice.Models.Graph
         public string Description { get; set; }
 
         public string ButtonName { get; set; }
+
+        public string? Question { get; set; }
 
         public int X { get; set; }
 
