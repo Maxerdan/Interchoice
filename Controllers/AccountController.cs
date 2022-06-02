@@ -230,25 +230,24 @@ namespace Interchoice.Controllers
                     context.Nodes.Update(foundNode);
                     context.SaveChanges();
 
-                    var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
-                    return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
-                }
+                var videoLocalUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
+                return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
             }
+        }
             catch (Exception ex)
             {
                 Log.Error(ex.Message);
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 return Json(new TransportResult(144, $"{ex.Message}"));
             }
-        }
 
-        /// <summary>
-        /// Removes video
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        /// <response code="200 (12)">Successful removed video</response>
-        [Authorize]
+            /// <summary>
+            /// Removes video
+            /// </summary>
+            /// <param name="id"></param>
+            /// <returns></returns>
+            /// <response code="200 (12)">Successful removed video</response>
+            [Authorize]
         [EnableCors]
         [HttpDelete("scene/{id}/video")]
         public async Task<IActionResult> RemoveVideo(Guid id)
@@ -419,12 +418,11 @@ namespace Interchoice.Controllers
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var user = await _userManager.FindByEmailAsync(email);
                 var projects = context.ProjectsInfo.Where(x=>x.UserId == user.Id.ToString()).ToList();
-                var projectsShort = projects.Select(x => new ProjectInfoShort(x, HttpContext));
+                var projectsShort = projects.Select(x => new ProjectInfoShort(x));
                 return Json(projectsShort);
             }
         }
 
-        [Authorize]
         [EnableCors]
         [HttpGet("projects")]
         public async Task<IActionResult> GetAllProjects()
@@ -432,7 +430,7 @@ namespace Interchoice.Controllers
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var projects = context.ProjectsInfo.ToList();
-                var projectsShort = projects.Select(x => new ProjectInfoShort(x, HttpContext));
+                var projectsShort = projects.AsParallel().Select(x => new ProjectInfoShort(x));
                 return Json(projectsShort);
             }
         }

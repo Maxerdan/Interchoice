@@ -67,10 +67,10 @@ namespace Interchoice.Models
                 var user = context.Users.Find(projectInfo.UserId);
                 var email = user.Email;
                 var emailName = email.Split('@').First();
-                var userFolderName = $"/{emailName}/";
-                var projectName = $"{ProjectId}/";
+                var userFolderName = $"{emailName}";
+                var projectName = $"{ProjectId}";
 
-                return Constants.Https + userFolderName + projectName + projectInfo.Overview;
+                return Path.Combine(Constants.Https, userFolderName, projectName, projectInfo.Overview);
             }
         }
     }
