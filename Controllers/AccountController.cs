@@ -306,6 +306,7 @@ namespace Interchoice.Controllers
                 foundNode.Name = editNode.Name;
                 foundNode.Description = editNode.Description;
                 foundNode.ButtonName = editNode.ButtonName;
+                foundNode.Question = editNode.Question;
 
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();

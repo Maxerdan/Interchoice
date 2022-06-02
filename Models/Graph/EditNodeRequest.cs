@@ -11,5 +11,7 @@ namespace Interchoice.Models.Graph
         public string Description { get; set; }
 
         public string ButtonName { get; set; }
+
+        public string? Question { get; set; }
     }
 }

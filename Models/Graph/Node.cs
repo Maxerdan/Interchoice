@@ -23,6 +23,8 @@ namespace Interchoice.Models.Graph
 
         public string ButtonName { get; set; }
 
+        public string? Question { get; set; }
+
         public int X { get; set; }
 
         public int Y { get; set; }
