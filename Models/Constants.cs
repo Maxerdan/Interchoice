@@ -2,8 +2,8 @@
 {
     public static class Constants
     {
-        public const string Https = "https://localhost:5001";
+        public const string Https = "https://api.interchoice.ru";
 
-        public const string Http = "http://localhost:5000";
+        public const string Http = "http://api.interchoice.ru";
     }
 }

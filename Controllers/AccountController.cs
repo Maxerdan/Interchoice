@@ -225,7 +225,7 @@ namespace Interchoice.Controllers
                 context.Nodes.Update(foundNode);
                 context.SaveChanges();
 
-                var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
+                var videoLocalUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
                 return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
             }
         }
@@ -407,12 +407,11 @@ namespace Interchoice.Controllers
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var user = await _userManager.FindByEmailAsync(email);
                 var projects = context.ProjectsInfo.Where(x=>x.UserId == user.Id.ToString()).ToList();
-                var projectsShort = projects.Select(x => new ProjectInfoShort(x, HttpContext));
+                var projectsShort = projects.Select(x => new ProjectInfoShort(x));
                 return Json(projectsShort);
             }
         }
 
-        [Authorize]
         [EnableCors]
         [HttpGet("projects")]
         public async Task<IActionResult> GetAllProjects()
@@ -420,7 +419,7 @@ namespace Interchoice.Controllers
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var projects = context.ProjectsInfo.ToList();
-                var projectsShort = projects.Select(x => new ProjectInfoShort(x, HttpContext));
+                var projectsShort = projects.AsParallel().Select(x => new ProjectInfoShort(x));
                 return Json(projectsShort);
             }
         }

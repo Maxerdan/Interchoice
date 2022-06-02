@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 
@@ -20,16 +21,16 @@ namespace Interchoice.Models.Graph
                 var user = context.Users.Find(userId);
                 var email = user.Email;
                 var emailName = email.Split('@').First();
-                var userFolderName = $"/{emailName}/";
+                var userFolderName = $"{emailName}";
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.ProjectId}/";
+                var projectName = $"{project.ProjectId}";
                 var foundNode = context.Nodes.Find(id);
                 if (foundNode is null)
                     return;
                 if (string.IsNullOrEmpty(foundNode.VideoFileName))
                     VideoUrl = "";
                 else
-                    VideoUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
+                    VideoUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
                 if(foundNode.ParentGuids != "")
                 ParentGuids = foundNode.ParentGuids?.Split("\n").Select(x=>new Guid(x)).ToList();
                 if (foundNode.ChildGuids != "")
