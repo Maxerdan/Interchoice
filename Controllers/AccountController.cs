@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Net;
 using Interchoice.Models.Graph;
+using Serilog;
 
 namespace Interchoice.Controllers
 {
@@ -198,35 +199,46 @@ namespace Interchoice.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         /// <response code="200 (11)">Successful load video</response>
+        /// <response code="403 (144)">Exception message</response>
         [Authorize]
         [EnableCors]
         [HttpPut("scene/{id}/video")]
         public async Task<IActionResult> LoadVideo(Guid id)
         {
-            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            try
             {
-                var email = GetValue(HttpContext.User, ClaimTypes.Name);
-                var emailName = email.Split('@').First();
-                var userFolderName = $"{emailName}";
-                var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
-                var projectName = $"{project.ProjectId}";
-                var foundNode = context.Nodes.Find(id);
-
-                if (HttpContext.Request.Form.Files[0] != null)
+                Log.Information("Load Started");
+                using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
                 {
-                    var file = HttpContext.Request.Form.Files[0];
-                    using (FileStream fileStream = System.IO.File.Create(Path.Combine(currentDirectory, userFolderName, projectName, file.FileName)))
-                    {
-                        foundNode.VideoFileName = file.FileName;
-                        file.CopyTo(fileStream);
-                        fileStream.Flush();
-                    }
-                }
-                context.Nodes.Update(foundNode);
-                context.SaveChanges();
+                    var email = GetValue(HttpContext.User, ClaimTypes.Name);
+                    var emailName = email.Split('@').First();
+                    var userFolderName = $"{emailName}";
+                    var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
+                    var projectName = $"{project.ProjectId}";
+                    var foundNode = context.Nodes.Find(id);
 
-                var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
-                return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
+                    if (HttpContext.Request.Form.Files[0] != null)
+                    {
+                        var file = HttpContext.Request.Form.Files[0];
+                        using (FileStream fileStream = System.IO.File.Create(Path.Combine(currentDirectory, userFolderName, projectName, file.FileName)))
+                        {
+                            foundNode.VideoFileName = file.FileName;
+                            file.CopyTo(fileStream);
+                            fileStream.Flush();
+                        }
+                    }
+                    context.Nodes.Update(foundNode);
+                    context.SaveChanges();
+
+                    var videoLocalUrl = Constants.Https + userFolderName + projectName + foundNode.VideoFileName;
+                    return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                return Json(new TransportResult(144, $"{ex.Message}"));
             }
         }
 
