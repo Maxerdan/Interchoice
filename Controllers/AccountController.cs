@@ -230,16 +230,17 @@ namespace Interchoice.Controllers
                     context.Nodes.Update(foundNode);
                     context.SaveChanges();
 
-                var videoLocalUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
-                return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
+                    var videoLocalUrl = Path.Combine(Constants.Https, userFolderName, projectName, foundNode.VideoFileName);
+                    return Json(new TransportResult(11, $"Successful load video", videoLocalUrl));
+                }
             }
-        }
             catch (Exception ex)
             {
                 Log.Error(ex.Message);
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 return Json(new TransportResult(144, $"{ex.Message}"));
             }
+        }
 
             /// <summary>
             /// Removes video
