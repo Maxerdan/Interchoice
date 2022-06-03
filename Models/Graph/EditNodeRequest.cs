@@ -13,5 +13,7 @@ namespace Interchoice.Models.Graph
         public string ButtonName { get; set; }
 
         public string? Question { get; set; }
+
+        public bool IsBeginning { get; set; }
     }
 }

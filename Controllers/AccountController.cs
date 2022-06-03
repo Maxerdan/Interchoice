@@ -293,18 +293,40 @@ namespace Interchoice.Controllers
         [HttpPut("scene/{id}")]
         public async Task<IActionResult> EditNode(Guid id, [FromBody] EditNodeRequest editNode)
         {
-            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            try
             {
-                context.Nodes = context.Set<Node>();
-                var foundNode = context.Nodes.Find(id);
-                foundNode.Name = editNode.Name;
-                foundNode.Description = editNode.Description;
-                foundNode.ButtonName = editNode.ButtonName;
-                foundNode.Question = editNode.Question;
+                using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+                {
+                    context.Nodes = context.Set<Node>();
+                    var foundNode = context.Nodes.Find(id);
+                    foundNode.Name = editNode.Name;
+                    foundNode.Description = editNode.Description;
+                    foundNode.ButtonName = editNode.ButtonName;
+                    foundNode.Question = editNode.Question;
+                    foundNode.IsBeginning = editNode.IsBeginning;
 
-                context.Nodes.Update(foundNode);
-                context.SaveChanges();
-                return Json(new TransportResult(7, $"Successful edit node"));
+                    var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
+                    var nodesFromProject = project.NodesId.Split('\n').Where(x => !string.IsNullOrEmpty(x)).Select(x => new Guid(x)).ToList();
+                    foreach (var nodeGuid in nodesFromProject)
+                    {
+                        if (nodeGuid == id && editNode.IsBeginning)
+                            continue;
+                        var node = context.Nodes.Find(nodeGuid);
+                        node.IsBeginning = false;
+                        context.Nodes.Update(node);
+                    }
+                    //var allTrueNodesExceptMine = context.Nodes.Where(x => x.Id != foundNode.Id && x.IsBeginning).ToList();
+
+                    context.Nodes.Update(foundNode);
+                    context.SaveChanges();
+                    return Json(new TransportResult(7, $"Successful edit node"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                return Json(new TransportResult(144, $"{ex.Message}"));
             }
         }
 
