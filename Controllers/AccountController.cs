@@ -161,8 +161,8 @@ namespace Interchoice.Controllers
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var foundNode = context.Nodes.Find(id);
-                context.Nodes.Remove(foundNode);
+                var foundingNode = context.Nodes.Find(id);
+                context.Nodes.Remove(foundingNode);
                 context.SaveChanges();
 
                 var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
