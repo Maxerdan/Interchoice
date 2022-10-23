@@ -87,13 +87,12 @@ namespace Interchoice.Controllers
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
                 var foundParentNode = context.Nodes.Find(new Guid(connectRequest.FromId));
-                if (string.IsNullOrEmpty(foundParentNode.ChildGuids))
-                    foundParentNode.ChildGuids += $"\n{connectRequest.ToId}";
+                foundParentNode.ChildGuids += $"\n{connectRequest.ToId}";
                 context.Nodes.Update(foundParentNode);
                 context.SaveChanges();
 
                 var foundChildNode = context.Nodes.Find(new Guid(connectRequest.ToId));
-                    foundChildNode.ParentGuids += $"\n{connectRequest.FromId}";
+                foundChildNode.ParentGuids += $"\n{connectRequest.FromId}";
                 context.Nodes.Update(foundChildNode);
                 context.SaveChanges();
 
@@ -170,7 +169,7 @@ namespace Interchoice.Controllers
                 if (project.NodesId == id.ToString())
                     project.NodesId = "";
                 else
-                project.NodesId = project.NodesId.Replace("\n"+id.ToString(), "");
+                    project.NodesId = project.NodesId.Replace("\n" + id.ToString(), "");
                 context.ProjectsInfo.Update(project);
                 context.SaveChanges();
 
@@ -237,13 +236,13 @@ namespace Interchoice.Controllers
             }
         }
 
-            /// <summary>
-            /// Removes video
-            /// </summary>
-            /// <param name="id"></param>
-            /// <returns></returns>
-            /// <response code="200 (12)">Successful removed video</response>
-            [Authorize]
+        /// <summary>
+        /// Removes video
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="200 (12)">Successful removed video</response>
+        [Authorize]
         [EnableCors]
         [HttpDelete("scene/{id}/video")]
         public async Task<IActionResult> RemoveVideo(Guid id)
@@ -270,7 +269,7 @@ namespace Interchoice.Controllers
         [Authorize]
         [EnableCors]
         [HttpPut("scene/{id}/coordinates")]
-        public async Task<IActionResult> EditCoordinates(Guid id,[FromBody] Point point)
+        public async Task<IActionResult> EditCoordinates(Guid id, [FromBody] Point point)
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
@@ -294,18 +293,40 @@ namespace Interchoice.Controllers
         [HttpPut("scene/{id}")]
         public async Task<IActionResult> EditNode(Guid id, [FromBody] EditNodeRequest editNode)
         {
-            using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+            try
             {
-                context.Nodes = context.Set<Node>();
-                var foundNode = context.Nodes.Find(id);
-                foundNode.Name = editNode.Name;
-                foundNode.Description = editNode.Description;
-                foundNode.ButtonName = editNode.ButtonName;
-                foundNode.Question = editNode.Question;
+                using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
+                {
+                    context.Nodes = context.Set<Node>();
+                    var foundNode = context.Nodes.Find(id);
+                    foundNode.Name = editNode.Name;
+                    foundNode.Description = editNode.Description;
+                    foundNode.ButtonName = editNode.ButtonName;
+                    foundNode.Question = editNode.Question;
+                    foundNode.IsBeginning = editNode.IsBeginning;
 
-                context.Nodes.Update(foundNode);
-                context.SaveChanges();
-                return Json(new TransportResult(7, $"Successful edit node"));
+                    var project = context.ProjectsInfo.Where(x => x.NodesId != null).ToList().Where(x => x.NodesId.Contains(id.ToString())).First();
+                    var nodesFromProject = project.NodesId.Split('\n').Where(x => !string.IsNullOrEmpty(x)).Select(x => new Guid(x)).ToList();
+                    foreach (var nodeGuid in nodesFromProject)
+                    {
+                        if (nodeGuid == id && editNode.IsBeginning)
+                            continue;
+                        var node = context.Nodes.Find(nodeGuid);
+                        node.IsBeginning = false;
+                        context.Nodes.Update(node);
+                    }
+                    //var allTrueNodesExceptMine = context.Nodes.Where(x => x.Id != foundNode.Id && x.IsBeginning).ToList();
+
+                    context.Nodes.Update(foundNode);
+                    context.SaveChanges();
+                    return Json(new TransportResult(7, $"Successful edit node"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                return Json(new TransportResult(144, $"{ex.Message}"));
             }
         }
 
@@ -414,8 +435,8 @@ namespace Interchoice.Controllers
             {
                 var email = GetValue(HttpContext.User, ClaimTypes.Name);
                 var user = await _userManager.FindByEmailAsync(email);
-                var projects = context.ProjectsInfo.Where(x=>x.UserId == user.Id.ToString()).ToList();
-                var projectsShort = projects.Select(x => new ProjectInfoShort(x)).OrderByDescending(x=>x.);
+                var projects = context.ProjectsInfo.Where(x => x.UserId == user.Id.ToString()).ToList();
+                var projectsShort = projects.Select(x => new ProjectInfoShort(x));
                 return Json(projectsShort);
             }
         }

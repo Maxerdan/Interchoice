@@ -25,6 +25,8 @@ namespace Interchoice.Models.Graph
 
         public string? Question { get; set; }
 
+        public bool IsBeginning { get; set; }
+
         public int X { get; set; }
 
         public int Y { get; set; }

@@ -32,17 +32,31 @@ namespace Interchoice.Models
 
                 using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
                 {
-                    var nodeStringId = projectInfo.NodesId.Split("\n").FirstOrDefault(GetNode);
-
-                    bool GetNode(string id)
+                    var nodesFromProject = projectInfo.NodesId.Split('\n').Where(x => !string.IsNullOrEmpty(x)).Select(x => new Guid(x)).ToList();
+                    var nodes = new List<Node>();
+                    foreach(var nodeGuid in nodesFromProject)
                     {
-                        var node = context.Nodes.Find(new Guid(id));
-                        if(node is null)
-                            return false;
-                        return string.IsNullOrEmpty(node.ParentGuids);
+                        var node = context.Nodes.Find(nodeGuid);
+                        if(node.IsBeginning)
+                            nodes.Add(node);
                     }
-                if(nodeStringId != null)
-            FirstNode = new NodeSummary(new Guid(nodeStringId), projectInfo.UserId);
+                    
+                    if(nodes.Count != 0)
+                        FirstNode = new NodeSummary(nodes.First().Id, projectInfo.UserId);
+                    else if(nodes.Count == 0)
+                    {
+                        var nodeStringId = projectInfo.NodesId.Split("\n").FirstOrDefault(GetNode);
+
+                        bool GetNode(string id)
+                        {
+                            var node = context.Nodes.Find(new Guid(id));
+                            if (node is null)
+                                return false;
+                            return string.IsNullOrEmpty(node.ParentGuids);
+                        }
+                        if (nodeStringId != null)
+                            FirstNode = new NodeSummary(new Guid(nodeStringId), projectInfo.UserId);
+                    }
                 }
             }
             else
