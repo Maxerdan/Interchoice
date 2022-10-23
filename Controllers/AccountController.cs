@@ -143,8 +143,8 @@ namespace Interchoice.Controllers
         {
             using (var context = new ApplicationContext(new DbContextOptionsBuilder<ApplicationContext>().UseSqlServer(Startup._conStr).Options))
             {
-                var foundedByIdNode = context.Nodes.Find(id);
-                return Json(foundedByIdNode);
+                var foundedByIDNode = context.Nodes.Find(id);
+                return Json(foundedByIDNode);
             }
         }
 
