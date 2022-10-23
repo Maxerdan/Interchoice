@@ -43,6 +43,7 @@ namespace Interchoice.Models.Graph
                 Description = foundNode.Description;
                 ButtonName = foundNode.ButtonName;
                 Question = foundNode.Question;
+                IsBeginning = foundNode.IsBeginning;
                 X = foundNode.X;
                 Y = foundNode.Y;
             }
@@ -63,6 +64,8 @@ namespace Interchoice.Models.Graph
         public string ButtonName { get; set; }
 
         public string? Question { get; set; }
+
+        public bool IsBeginning { get; set; }
 
         public int X { get; set; }
 
